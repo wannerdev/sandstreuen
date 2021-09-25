@@ -12,7 +12,7 @@ public class IconMainMenu : MonoBehaviour
 
     private void Start()
     {
-        currentOrientation = ScreenOrientation.Unknown;
+        currentOrientation = ScreenOrientation.AutoRotation;//Unknown;
     }
 
     // Update is called once per frame

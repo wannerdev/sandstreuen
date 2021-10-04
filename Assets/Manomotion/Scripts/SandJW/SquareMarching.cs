@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-class SandGenerator  : MonoBehaviour{
+class SquareMarching  : MonoBehaviour{
 
     //public int[][][] Space = new int[20][][];
     public int[,] Space = new int[20,20];
@@ -13,7 +13,7 @@ class SandGenerator  : MonoBehaviour{
     public void Start()
     {
         MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
-         meshRenderer.sharedMaterial = new Material(Shader.Find("Standard"));
+        meshRenderer.sharedMaterial = new Material(Shader.Find("Standard"));
 
         MeshFilter filter = gameObject.AddComponent<MeshFilter>();    
         var mesh = new Mesh();
@@ -49,8 +49,6 @@ class SandGenerator  : MonoBehaviour{
                 if(isInside(x+1,y+1)){
                     x1y1 = true;
                 }
-
-                
 
                 //evaluate squares
                 int cases = (   
@@ -97,8 +95,8 @@ class SandGenerator  : MonoBehaviour{
                             break  ;
                         case 8:                    
                         case 7:
-                            verticies.Add(new Vector3(x+1, y+0.5f, 0));
-                            verticies.Add(new Vector3(x+0.5f, y+0,0));
+                            verticies.Add(new Vector3(x+0.5f, y+1, 0));
+                            verticies.Add(new Vector3(x+1, y+0.5f,0));
                             indicies.Add( i );
             i++;
                             indicies.Add( i );
@@ -174,15 +172,12 @@ class SandGenerator  : MonoBehaviour{
     }
 
     void swap(ref List<int> indicies){
-        //  int cache = indicies[indicies.Count-2];
-        //  indicies[indicies.Count-2] = indicies[indicies.Count-1];
-        //  indicies[indicies.Count-1] = cache;
+        int cache = indicies[indicies.Count-2];
+        indicies[indicies.Count-2] = indicies[indicies.Count-1];
+        indicies[indicies.Count-1] = cache;
                     
     }
 
-   
-
-    
     bool isInside(int x, int y){
         x=x-5;
         y=y-5;

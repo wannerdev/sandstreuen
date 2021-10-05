@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DualConturing : MonoBehaviour
+public class DualConturing2D : MonoBehaviour
 {
     public int areaSize = 10;
     // Start is called before the first frame update
@@ -58,25 +58,12 @@ public class DualConturing : MonoBehaviour
                     bool y1_inside = isInside(x,y1,0);
                     if(y0_inside ^y1_inside){
                         //prob not good
-                        //Vector3 tesvert = adaptedV[x-1+y];
-                        //tesvert.x -= 1;
                         
                         verticies.Add(vertexe[x-1,y]);
                         indicies.Add(verticies.Count-1);
 
                         verticies.Add(vertexe[x,y]);
                         indicies.Add(verticies.Count-1);
-                        // if(y0_inside){
-                        //     verticies.Add(vertexe[x,y]);
-                        //     indicies.Add(verticies.Count-1);                           
-                        //     verticies.Add(vertexe[x-1,y]);
-                        //     indicies.Add(verticies.Count-1);
-                        // }else{
-                        //     verticies.Add(vertexe[x-1,y]);
-                        //     indicies.Add(verticies.Count-1);
-                        //     verticies.Add(vertexe[x,y]);
-                        //     indicies.Add(verticies.Count-1);
-                        // }
                     }
 
 
@@ -93,41 +80,13 @@ public class DualConturing : MonoBehaviour
                     bool x0_inside = isInside(x0,y,0);
                     bool x1_inside = isInside(x1,y,0);
                     if(x0_inside ^ x1_inside){
-                        
-
                         verticies.Add(vertexe[x,y-1]);
                         indicies.Add(verticies.Count-1);
                         verticies.Add(vertexe[x,y]);
                         indicies.Add(verticies.Count-1);
-                        //prob not good
-                        // if(x0_inside){
-                        //     verticies.Add(vertexe[x,y]);
-                        //     indicies.Add(verticies.Count-1);
-                        //     verticies.Add(vertexe[x,y-1]);
-                        //     indicies.Add(verticies.Count-1);
-                        // }else{
-                        //     verticies.Add(vertexe[x,y-1]);
-                        //     indicies.Add(verticies.Count-1);
-                        //     verticies.Add(vertexe[x,y]);
-                        //     indicies.Add(verticies.Count-1);
-                        // }
                     }
-
-
                 }   
             }
-        // }
-
-        // for (int z = 0;  z <= areaSize; z++)
-        // {
-        //     for (int y = 0;  y <= areaSize; y++)
-        //     {
-        //         for (int x = 0; x <= areaSize; x++)
-        //         {
-        //             isInside(x,y,z);
-        //         }
-        //     }
-        // }
         //make mesh
         mesh.vertices = verticies.ToArray();
         Vector3[] vertices = mesh.vertices;

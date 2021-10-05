@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-class DebugGridDC  : MonoBehaviour{
+class DebugGridDC2D  : MonoBehaviour{
 
     //public int[][][] Space = new int[20][][];
     public int[,] Space = new int[20,20];

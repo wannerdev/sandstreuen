@@ -6,6 +6,7 @@ public class Interactable : MonoBehaviour
 {
     [SerializeField]
     InteractableCubeBehavior currentInteractableCube;
+    DualConturing3D generator;
 
 
     // Update is called once per frame
@@ -15,7 +16,7 @@ public class Interactable : MonoBehaviour
         //DetectHandGestureTap();
         DetectHandGestureClick();
         //DetectHandGesturePinch();
-        DetectHandGestureRelease();
+        // DetectHandGestureRelease();
     }
 
     void DetectSandGestureIntuitiv()
@@ -55,6 +56,9 @@ public class Interactable : MonoBehaviour
             if (currentInteractableCube)
             {
                 currentInteractableCube.InteractWithCube();
+                Vector3 point = detectedHand.tracking_info.palm_center;
+                point.z = detectedHand.tracking_info.depth_estimation;
+                generator.add_cone(point, 5, 100);
             }
         }
 

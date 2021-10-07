@@ -5,10 +5,7 @@ using UnityEngine;
 class DebugGridDC3D : MonoBehaviour
 {
 
-    public int[,] Space = new int[20, 20];
-    public float width = 10;
-    public float height = 10;
-    public int areaSize;
+    public int areaSize=40;
 
     public void Start()
     {

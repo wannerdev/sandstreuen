@@ -3,9 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DualConturing2D : MonoBehaviour
+public class DualContouring2D : MonoBehaviour
 {
-    public int areaSize = 10;
+    public int areaSize = 10; 
+    public bool isAdaptive= true; 
     // Start is called before the first frame update
     void Start()
     {
@@ -36,7 +37,7 @@ public class DualConturing2D : MonoBehaviour
                 for (int y = 0; y <= areaSize; y++)
                 {                
                     //normal to define - for now 2D
-                    vertexe[x,y] = find_vertex(x,y,0, new Vector3(0,0,0) );
+                    vertexe[x,y] =find_vertex(x,y,0, new Vector3(0,0,0) );
                     if (vertexe[x,y] == null){
                         continue;
                     }
@@ -130,22 +131,15 @@ public class DualConturing2D : MonoBehaviour
         y= y-5;
         return 2.5 - Mathf.Sqrt(x*x + y*y); //+z*z
     }
-
-
-    // Update is called once per frame
-    void Update()
-    {
-
-        /* pseudocode to create authentic sand
-
-        start when hand gesture fist detected && angle correct 
-            get coord from hand
-            add coords to list of vertices inside / or add cone object to list?
-            increase height of cone
-            Maybe Hyperboloid https://en.wikipedia.org/wiki/Hyperboloid?
-            https://stackoverflow.com/questions/12826117/how-can-i-detect-if-a-point-is-inside-a-cone-or-not-in-3d-space
-            https://stackoverflow.com/questions/10768142/verify-if-point-is-inside-a-cone-in-3d-space
-            https://stackoverflow.com/questions/41443171/how-to-determine-if-point-is-inside-skewed-conical-frustum
-        */
+    
+    float adapt(double  v0, double v1){
+        //v0 and v1 are numbers of opposite sign. 
+        //This returns how far you need to interpolate from v0 to v1 to get to 0
+        //assert((v1 > 0) != (v0 > 0));
+        if (isAdaptive)
+            return (float) ((0 - v0) / (v1 - v0));
+        else
+            return 0.5f;
     }
+
 }

@@ -5,7 +5,7 @@ public class ManomotionUIManagment : MonoBehaviour
 {
     private bool _showLicenseInfo;
     [SerializeField]
-    Text FPSValueText, processingTimeValueText, versionText, credits, daysLeft, licenseEnd;
+    Text FPSValueText, processingTimeValueText, versionText, credits, daysLeft, licenseEnd, coords;
     [SerializeField]
     GameObject licenseInfoGizmo;
 
@@ -44,7 +44,7 @@ public class ManomotionUIManagment : MonoBehaviour
     {
         FPSValueText.text = ManomotionManager.Instance.Fps.ToString();
     }
-
+    
     /// <summary>
     /// Updates the text field with the calculated processing time value.
     /// </summary>

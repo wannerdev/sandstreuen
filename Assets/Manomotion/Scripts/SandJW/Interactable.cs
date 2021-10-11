@@ -1,14 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Interactable : MonoBehaviour
 {
     [SerializeField]
     InteractableCubeBehavior currentInteractableCube;
-    DualConturing3D generator;
+    // Text coordsValue;
+    public GameObject generator;
+    public Camera cam;
 
-
+    void start(){
+    }
     // Update is called once per frame
     void Update()
     {
@@ -56,11 +60,30 @@ public class Interactable : MonoBehaviour
             if (currentInteractableCube)
             {
                 currentInteractableCube.InteractWithCube();
-                Vector3 point = detectedHand.tracking_info.palm_center;
-                point.z = detectedHand.tracking_info.depth_estimation;
-                generator.add_cone(point, 5, 100);
+                // Vector3 point = detectedHand.tracking_info.palm_center;
+                // point.z = detectedHand.tracking_info.depth_estimation;
+                //0,0 bottom left of screen
+                //top right is 1,1
+                //depth estimation 0-1
+                //create by palm position ? + scale to max 5
+                //Vector3 place = new Vector3(detectedHand.tracking_info.palm_center.x*5, detectedHand.tracking_info.palm_center.y*5, Camera.main.transform.position.z*5);
+                
+                //create by camera position + offset for mesharea startpoint
+                Vector3 place = new Vector3(cam.transform.position.x +20,cam.transform.position.y+1, Camera.main.transform.position.z+1);
+
+                // coordsValue.text = place.ToString();
+                generator.GetComponent<DualContouring3D>().add_cone(place, 5, 100);
+                generator.GetComponent<DualContouring3D>().regenerateMesh();
             }
         }
+        //  if(Input.GetMouseButtonDown(0)){
+            
+            //    Vector3 place = new Vector3(cam.transform.position.x +20,cam.transform.position.y+1, Camera.main.transform.position.z+1);
+                
+               // coordsValue.text = place.ToString();
+        //        generator.GetComponent<DualConturing3D>().add_cone(place, 5, 100);
+        //        generator.GetComponent<DualConturing3D>().regenerateMesh();
+        // }
 
     }
 

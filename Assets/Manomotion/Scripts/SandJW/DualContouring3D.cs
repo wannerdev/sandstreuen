@@ -3,18 +3,31 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DualConturing3D : MonoBehaviour
+public class DualContouring3D : MonoBehaviour
 {
-    public const int areaSize = 40;
+    public int areaSize = 40;
     public bool adaptive = true;
-    // Start is called before the first frame update
-    public List<Vector3> verticies = new List<Vector3>();
-    public Vector3[,,] vertexe = new Vector3[areaSize + 1, areaSize + 1, areaSize + 1];
-    public List<int> indicies = new List<int>();
-    public Mesh mesh;
-    public MeshFilter filter;
+    
+    internal List<Vector3> verticies;
+    internal Vector3[,,] vertexe ;
+    internal List<int> indicies ;
+    internal Mesh mesh;
+    internal MeshFilter filter;
     public List<Cone> cones;
 
+    /* pseudocode to create authentic sand
+
+        start when hand gesture fist detected && angle correct 
+            get coord from hand
+            add coords to list of vertices inside / or add cone object to list?
+            increase height of cone
+            Maybe Hyperboloid https://en.wikipedia.org/wiki/Hyperboloid?
+            https://stackoverflow.com/questions/12826117/how-can-i-detect-if-a-point-is-inside-a-cone-or-not-in-3d-space
+            https://stackoverflow.com/questions/10768142/verify-if-point-is-inside-a-cone-in-3d-space
+            https://stackoverflow.com/questions/41443171/how-to-determine-if-point-is-inside-skewed-conical-frustum
+        */
+
+    // Start is called before the first frame update
     void Start()
     {
 
@@ -22,8 +35,15 @@ public class DualConturing3D : MonoBehaviour
         meshRenderer.sharedMaterial = new Material(Shader.Find("Standard"));
         meshRenderer.material.SetColor("_Color", Color.red);
         //meshRenderer.
+
+        //inits
         mesh = new Mesh();
         cones = new List<Cone>();
+        
+        vertexe = new Vector3[areaSize + 1, areaSize + 1, areaSize + 1];
+        indicies = new List<int>();
+        verticies = new List<Vector3>();
+
         Vector3 point=new Vector3(0,0,0);
         add_cone(point, 10, 100);
 
@@ -33,7 +53,6 @@ public class DualConturing3D : MonoBehaviour
 
         var faces = new List<Vector3>();
 
-        Vector3[,,] vertexe = new Vector3[areaSize + 1, areaSize + 1, areaSize + 1];
 
         for (int x = 0; x <= areaSize; x++)
         {
@@ -185,12 +204,12 @@ public class DualConturing3D : MonoBehaviour
         if(adaptive){
             return new Vector3(x + 0.5f, y + 0.5f, z+0.5f);
         }
-        //Vector3 vec =  new Vector3(x, y, z);
-        float [,,]edges = new float[,,];
+        Vector3 vec =  new Vector3(x, y, z);
+        float [,,]edges = new float[2,2,2];
         for(int j =0; j < 2;j++){
             for(int k =0; k < 2;k++){
                 for(int l =0; l < 2;l++){
-                    edges[j,k,l] = isInside(x+j,y+k,+l);
+                    edges[j,k,l] = ball_function(x+j,y+k,+l);
                 }
             }
         }
@@ -198,14 +217,14 @@ public class DualConturing3D : MonoBehaviour
         return vec;
     }
 
-private float adapt(float  v0, float v1){
-    //v0 and v1 are numbers of opposite sign. This returns how far you need to interpolate from v0 to v1 to get to 0
-    //assert((v1 > 0) != (v0 > 0));
-    if (adaptive)
-        return (0 - v0) / (v1 - v0);
-    else
-        return 0.5f;
-}
+    private float adapt(float  v0, float v1){
+        //v0 and v1 are numbers of opposite sign. This returns how far you need to interpolate from v0 to v1 to get to 0
+        //assert((v1 > 0) != (v0 > 0));
+        if (adaptive)
+            return (0 - v0) / (v1 - v0);
+        else
+            return 0.5f;
+    }
 
     void swap(ref List<int> indicies)
     {
@@ -218,7 +237,8 @@ private float adapt(float  v0, float v1){
     bool isInside(float x, float y, float z)
     {
         //check cones?
-        float[] vert={x-5,y,z-5}; // move to center
+        // float[] vert={x-5,y,z-5}; // move to center
+        float[] vert={x,y,z}; // move to center
         foreach( Cone cone in cones ){
             if(isLyingInCone(vert, cone.tip, cone.bot,cone.aperture))return true;
         }
@@ -234,13 +254,13 @@ private float adapt(float  v0, float v1){
     }
 
 
-    double ball_function(float x, float y, float z)
+    float ball_function(float x, float y, float z)
     {
         //move 
         x -= 5;
         y -= 5;
         z -= 5;
-        return 2.5 - Mathf.Sqrt(x * x + y * y + z * z); 
+        return 2.5f - Mathf.Sqrt(x * x + y * y + z * z) ; 
     }
 
     double circle_function(float x, float y, float z)
@@ -248,15 +268,16 @@ private float adapt(float  v0, float v1){
         //move circle to the right
         x = x - 5;
         y = y - 5;
-        return 2.5 - Mathf.Sqrt(x * x + y * y); //+z*z
+        return 2.5 - Mathf.Sqrt(x * x + y * y);
     }
 
     public void add_cone(Vector3 coord, float height, float aperture)
     {
+        Debug.Log("executed at "+coord.ToString());
         float x=coord.x;
         float y=coord.y;
         float z=coord.z;
-        float[] tip = {x,y+height,y};
+        float[] tip = {x,y+height,z};
         float[] bot = {x,y,z};
         
         // float[] tip = {0,10,0};
@@ -268,7 +289,12 @@ private float adapt(float  v0, float v1){
     // Update is called once per frame
     void Update()
     {
+    //    regenerateMesh();
+        
+    }
 
+    public void regenerateMesh(){
+        
         // If one point is inside and not all points are inside place vertex -
         // another way to phrase it is just show the edges where a sign switch happens
         for (int x = 0; x <= areaSize; x++) //start a bit to the right to have neighbors
@@ -397,17 +423,6 @@ private float adapt(float  v0, float v1){
         mesh.SetIndices(indicies.ToArray(), MeshTopology.Quads, 0);
 
         filter.mesh = mesh;
-        /* pseudocode to create authentic sand
-
-        start when hand gesture fist detected && angle correct 
-            get coord from hand
-            add coords to list of vertices inside / or add cone object to list?
-            increase height of cone
-            Maybe Hyperboloid https://en.wikipedia.org/wiki/Hyperboloid?
-            https://stackoverflow.com/questions/12826117/how-can-i-detect-if-a-point-is-inside-a-cone-or-not-in-3d-space
-            https://stackoverflow.com/questions/10768142/verify-if-point-is-inside-a-cone-in-3d-space
-            https://stackoverflow.com/questions/41443171/how-to-determine-if-point-is-inside-skewed-conical-frustum
-        */
     }
 
     /** Credit @https://stackoverflow.com/questions/10768142/verify-if-point-is-inside-a-cone-in-3d-space

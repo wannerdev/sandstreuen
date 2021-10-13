@@ -142,7 +142,6 @@ public class DualContouring2DAdapt : MonoBehaviour
             (circle_function(x + d, y) - circle_function(x - d, y)) / 2 / d,
             (circle_function(x, y + d) - circle_function(x, y - d)) / 2 / d
         ).normalized;
-            //return new Vector2(0,0); //implement
     }
 
 //  public static Vector<float> CalculateCubeQEF(Vector3[] normals, Vector3[] positions, Vector3 meanPoint)

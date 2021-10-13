@@ -2,13 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+// using generator = DualContouring3D;
 
 public class Interactable : MonoBehaviour
 {
     [SerializeField]
     InteractableCubeBehavior currentInteractableCube;
     // Text coordsValue;
-    public GameObject generator;
+   // public GameObject generator;
     public Camera cam;
 
     void start(){
@@ -72,8 +73,14 @@ public class Interactable : MonoBehaviour
                 Vector3 place = new Vector3(cam.transform.position.x +20,cam.transform.position.y+1, Camera.main.transform.position.z+1);
 
                 // coordsValue.text = place.ToString();
-                generator.GetComponent<DualContouring3D>().add_cone(place, 5, 100);
-                generator.GetComponent<DualContouring3D>().regenerateMesh();
+                //didn't work
+                // DualContouring3D g =  new DualContouring3D();
+                // g.add_cone(place, 5, 100);
+                // g.regenerateMesh();
+                
+                //worked?
+                //g.GetComponent<DualContouring3D>().add_cone(place, 5, 100);
+                //g.GetComponent<DualContouring3D>().regenerateMesh();
             }
         }
         //  if(Input.GetMouseButtonDown(0)){

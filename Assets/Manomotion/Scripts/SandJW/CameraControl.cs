@@ -14,12 +14,16 @@ public class CameraControl : MonoBehaviour
 
     // Docboy add vertical move and mouse button dependant 2020
 
+    //public Camera cam;
     public float mainSpeed = 100.0f; //regular speed
     public float shiftAdd = 250.0f; //multiplied by how long shift is held.  Basically running
     public float maxShift = 1000.0f; //Maximum speed when holdin gshift
     public float camSens = 0.25f; //How sensitive it with mouse
     public Vector3 lastMouse = new Vector3(255, 255, 255); //kind of in the middle of the screen, rather than at the top (play)
     private float totalRun = 1.0f;
+
+    public GameObject generator;
+    private Camera cam;
     private void Start()
     {
         //Check if the device running this is a handheld
@@ -28,10 +32,20 @@ public class CameraControl : MonoBehaviour
             this.enabled = false;
         }
         lastMouse = Input.mousePosition;
+        this.cam = this.GetComponent<Camera>();
     }
     void Update()
     {
-        // if (Input.GetMouseButton(0))
+        if (Input.GetMouseButton(0)){
+            Vector3 place = new Vector3(cam.transform.position.x +20,cam.transform.position.y+1, Camera.main.transform.position.z+1);
+
+            // coordsValue.text = place.ToString();
+            // DualContouring3D dc = gameObject.GetComponent<DualContouring3D>();
+            //DualContouring3D g = gameObject.AddComponent<DualContouring3D>();
+            
+             generator.GetComponent<DualContouring3D>().add_cone(place, 5, 100);
+             generator.GetComponent<DualContouring3D>().regenerateMesh();
+        }
             DoCalculation();
         lastMouse = Input.mousePosition;
 
@@ -78,7 +92,6 @@ public class CameraControl : MonoBehaviour
         //Mouse  camera angle done.  
 
         //Keyboard commands
-        float f = 0.0f;
         Vector3 p = GetBaseInput();
         if (Input.GetKey(KeyCode.LeftShift))
         {

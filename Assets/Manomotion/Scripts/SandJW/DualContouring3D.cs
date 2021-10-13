@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class DualContouring3D : MonoBehaviour
 {
-    public int areaSize = 40;
+    public int areaSize = 20;
     public bool adaptive = true;
     
     internal List<Vector3> verticies;
@@ -14,7 +14,7 @@ public class DualContouring3D : MonoBehaviour
     internal Mesh mesh;
     internal MeshFilter filter;
     public List<Cone> cones;
-
+ public Material material;
     /* pseudocode to create authentic sand
 
         start when hand gesture fist detected && angle correct 
@@ -28,17 +28,19 @@ public class DualContouring3D : MonoBehaviour
         */
 
     // Start is called before the first frame update
+    
     void Start()
     {
 
         MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
-        meshRenderer.sharedMaterial = new Material(Shader.Find("Standard"));
+        //Shader sh = new Shader();
+        meshRenderer.sharedMaterial = material;
         meshRenderer.material.SetColor("_Color", Color.red);
         //meshRenderer.
 
         //inits
         mesh = new Mesh();
-        cones = new List<Cone>();
+        this.cones = new List<Cone>();
         
         vertexe = new Vector3[areaSize + 1, areaSize + 1, areaSize + 1];
         indicies = new List<int>();
@@ -234,6 +236,20 @@ public class DualContouring3D : MonoBehaviour
 
     }
 
+    //approximate of normal
+    private Vector3 normal_from_Ball(float  x, float y, float z, float d=0.01f){
+        return new Vector3(ball_function(x+d,y,z)- ball_function(x-d,y,z) /2/d,
+                           ball_function(x,y+d,z)- ball_function(x,y-d,z) /2/d,
+                           ball_function(x,y,z+d)- ball_function(x,y,z-d) /2/d).normalized;
+    }
+
+    //approximate of normal
+    private Vector3 normal_from_F(Func<float,float,float,float> function,float  x, float y, float z, float d=0.01f){
+        return new Vector3(function(x+d,y,z)- function(x-d,y,z) /2/d,
+                           function(x,y+d,z)- function(x,y-d,z) /2/d,
+                           function(x,y,z+d)- function(x,y,z-d) /2/d).normalized;
+    }
+
     bool isInside(float x, float y, float z)
     {
         //check cones?
@@ -283,14 +299,13 @@ public class DualContouring3D : MonoBehaviour
         // float[] tip = {0,10,0};
         // float[] bot = {0,0,0};
         Cone cone = new Cone(tip,bot,aperture);
-        cones.Add(cone);
+        this.cones.Add(cone);
     }
 
     // Update is called once per frame
     void Update()
     {
     //    regenerateMesh();
-        
     }
 
     public void regenerateMesh(){
@@ -498,4 +513,6 @@ public struct Cone
         this.bot = bot;
         this.aperture = aperture;
     }
+
+    
 }

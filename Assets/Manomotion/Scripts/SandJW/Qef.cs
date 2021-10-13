@@ -1,8 +1,9 @@
 using System;
+using UnityEngine;
 // Credit https://github.com/elemel/qef-csharp/blob/master/Qef.cs
 //Author: elemel
 namespace Qef
-{
+{ 
     public struct Vec3
     {
         public float x;

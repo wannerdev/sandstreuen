@@ -2,52 +2,57 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Qef;
+using static Bodies;
 
 public class DualContouring3D : MonoBehaviour
 {
     public int areaSize = 20;
-    public bool adaptive = true;
-    
+    public bool notAdaptive = true;
+
     internal List<Vector3> verticies;
-    internal Vector3[,,] vertexe ;
-    internal List<int> indicies ;
+    internal Vector3[,,] vertexe;
+    internal List<int> indicies;
+
+    internal float[] area;
     internal Mesh mesh;
     internal MeshFilter filter;
     public List<Cone> cones;
- public Material material;
+    public Material material;
+    private int flag=0;
+    public float floor=1;
+
     /* pseudocode to create authentic sand
 
         start when hand gesture fist detected && angle correct 
-            get coord from hand
-            add coords to list of vertices inside / or add cone object to list?
-            increase height of cone
-            Maybe Hyperboloid https://en.wikipedia.org/wiki/Hyperboloid?
-            https://stackoverflow.com/questions/12826117/how-can-i-detect-if-a-point-is-inside-a-cone-or-not-in-3d-space
-            https://stackoverflow.com/questions/10768142/verify-if-point-is-inside-a-cone-in-3d-space
-            https://stackoverflow.com/questions/41443171/how-to-determine-if-point-is-inside-skewed-conical-frustum
+        get coord from hand
+        add coords to list of vertices inside / or add cone object to list?
+        increase height of cone
         */
 
     // Start is called before the first frame update
-    
+
     void Start()
     {
 
         MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
         //Shader sh = new Shader();
         meshRenderer.sharedMaterial = material;
-        meshRenderer.material.SetColor("_Color", Color.red);
+        //meshRenderer.material.SetColor("_Color", Color.red);
         //meshRenderer.
 
         //inits
         mesh = new Mesh();
         this.cones = new List<Cone>();
-        
+
         vertexe = new Vector3[areaSize + 1, areaSize + 1, areaSize + 1];
         indicies = new List<int>();
         verticies = new List<Vector3>();
+        // todo save mesh array
+        //area = new float[areaSize*areaSize*areaSize*3];
 
-        Vector3 point=new Vector3(0,0,0);
-        add_cone(point, 10, 100);
+        Vector3 point = new Vector3(0, 0, 0);
+        add_cone(point, 4, 100);
 
         filter = gameObject.AddComponent<MeshFilter>();
         var mesh2 = new Mesh();
@@ -62,11 +67,13 @@ public class DualContouring3D : MonoBehaviour
             {
                 for (int z = 0; z <= areaSize; z++)
                 {
-                    vertexe[x, y, z] = find_vertex(x, y, z, new Vector3(0, 0, 0));
-                    if (vertexe[x, y, z] == null)
+                    Vector3 vertex = find_vertex(x, y, z, new Vector3(0, 0, 0));
+                    if (vertex == Vector3.negativeInfinity)
                     {
                         continue;
                     }
+                    vertexe[x, y, z] = vertex;
+                    //add indicies?
                 }
             }
         }
@@ -80,7 +87,7 @@ public class DualContouring3D : MonoBehaviour
                 for (int z = 0; z <= areaSize; z++)
                 {
                     if (x > 0 && y > 0)//respect area boundries
-                    { 
+                    {
                         //check edge for sign change
                         bool solid1 = isInside(x, y, z + 0);
                         bool solid2 = isInside(x, y, z + 1);
@@ -118,7 +125,7 @@ public class DualContouring3D : MonoBehaviour
                     }
 
                     if (x > 0 && z > 0)//respect area boundries
-                    { 
+                    {
                         //check edge for sign change
                         bool solid1 = isInside(x, y + 0, z);
                         bool solid2 = isInside(x, y + 1, z);
@@ -155,7 +162,7 @@ public class DualContouring3D : MonoBehaviour
                     }
 
                     if (y > 0 && z > 0)//respect area boundries
-                    { 
+                    {
                         //check edges for sign change
                         bool solid1 = isInside(x, y, z);
                         bool solid2 = isInside(x + 1, y, z);
@@ -199,33 +206,108 @@ public class DualContouring3D : MonoBehaviour
         mesh.SetIndices(indicies.ToArray(), MeshTopology.Quads, 0);
 
         filter.mesh = mesh;
+        this.transform.position -= new Vector3(areaSize/2,0,areaSize/2);
     }
 
     private Vector3 find_vertex(float x, float y, float z, Vector3 normal)
     {
-        if(adaptive){
-            return new Vector3(x + 0.5f, y + 0.5f, z+0.5f);
+        if (notAdaptive)
+        {
+            return new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
         }
-        Vector3 vec =  new Vector3(x, y, z);
-        float [,,]edges = new float[2,2,2];
-        for(int j =0; j < 2;j++){
-            for(int k =0; k < 2;k++){
-                for(int l =0; l < 2;l++){
-                    edges[j,k,l] = ball_function(x+j,y+k,+l);
+        Vector3 vec = new Vector3(x, y, z);
+        float[,,] edges = new float[2, 2, 2];
+        for (int j = 0; j < 2; j++)
+        {
+            for (int k = 0; k < 2; k++)
+            {
+                for (int l = 0; l < 2; l++)
+                {
+                    edges[j, k, l] = ball_function(x + j, y + k, +l);
                 }
             }
         }
 
+        var changes = new List<Vector3>();
+
+        for (int dx = 0; dx < 2; dx++)
+        {
+            for (int dy = 0; dy < 2; dy++)
+            {
+                if ((edges[dx, dy, 0] > 0) ^ (edges[dx, dy, 1] > 0))
+                {
+                    changes.Add(new Vector3(x + dx, y + dy, z + adapt(edges[dx, dy, 0], edges[dx, dy, 1])));
+                }
+            }
+        }
+
+
+        for (int dx = 0; dx < 2; dx++)
+        {
+            for (int dz = 0; dz < 2; dz++)
+            {
+                if ((edges[dx, 0, dz] > 0) ^ (edges[dx, 1, dz] > 0))
+                {
+                    changes.Add(new Vector3(x + dx, y + adapt(edges[dx, 0, dz], edges[dx, 1, dz]), z + dz));
+                }
+            }
+        }
+
+
+        for (int dy = 0; dy < 2; dy++)
+        {
+            for (int dz = 0; dz < 2; dz++)
+            {
+                if ((edges[0, dy, dz] > 0) ^ (edges[1, dy, dz] > 0))
+                {
+                    changes.Add(new Vector3(x + adapt(edges[0, dy, dz], edges[1, dy, dz]), y + dy, z + dz));
+                }
+            }
+        }
+
+        if (changes.Count <= 1)
+            return Vector3.negativeInfinity; //?? tochange!
+
+
+
+        var normals = new List<float>();
+        foreach (Vector3 v in changes ){
+            Vector3 n = normal_from_Ball(v[0], v[1],v[2]);
+            normals.Add(n.x);
+            normals.Add(n.y);
+            normals.Add(n.z);
+        }
+
+        //b ist b = [v[0] * n[0] + v[1] * n[1] + v[2] * n[2] for v, n in zip(positions, normals)]
+        //a
+        //Q.Qef solver = new Qef(); 
+        // Mat3 ata, Vec3 atb, Vec4 pointaccum,out Vec3 x)
+        Qef.Vec3 result = new Qef.Vec3(x, y, z);
+        Qef.Vec3 col0 = new Qef.Vec3(x, y, z),
+               col1 = new Qef.Vec3(x, y, z),
+               col2 = new Qef.Vec3(x, y, z);
+        Qef.Mat3 aTa = new Qef.Mat3(col0, col1, col2);
+        Qef.Vec3 aTb = new Qef.Vec3(x, y, z);
+        Qef.Vec4 point = new Qef.Vec4(x, y, z, z);
+
+        float res = Qef.Qef.Solve(aTa, aTb, point, out result);
+
+        //return new Vector3(result.x, result.y, result.z);
         return vec;
     }
 
-    private float adapt(float  v0, float v1){
+    private float adapt(float v0, float v1)
+    {
         //v0 and v1 are numbers of opposite sign. This returns how far you need to interpolate from v0 to v1 to get to 0
         //assert((v1 > 0) != (v0 > 0));
-        if (adaptive)
-            return (0 - v0) / (v1 - v0);
-        else
+        if (notAdaptive)
+        {
             return 0.5f;
+        }
+        else
+        {
+            return (0 - v0) / (v1 - v0);
+        }
     }
 
     void swap(ref List<int> indicies)
@@ -237,79 +319,81 @@ public class DualContouring3D : MonoBehaviour
     }
 
     //approximate of normal
-    private Vector3 normal_from_Ball(float  x, float y, float z, float d=0.01f){
-        return new Vector3(ball_function(x+d,y,z)- ball_function(x-d,y,z) /2/d,
-                           ball_function(x,y+d,z)- ball_function(x,y-d,z) /2/d,
-                           ball_function(x,y,z+d)- ball_function(x,y,z-d) /2/d).normalized;
+    private Vector3 normal_from_Ball(float x, float y, float z, float d = 0.01f)
+    {
+        return new Vector3(ball_function(x + d, y, z) - ball_function(x - d, y, z) / 2 / d,
+                           ball_function(x, y + d, z) - ball_function(x, y - d, z) / 2 / d,
+                           ball_function(x, y, z + d) - ball_function(x, y, z - d) / 2 / d).normalized;
     }
 
     //approximate of normal
-    private Vector3 normal_from_F(Func<float,float,float,float> function,float  x, float y, float z, float d=0.01f){
-        return new Vector3(function(x+d,y,z)- function(x-d,y,z) /2/d,
-                           function(x,y+d,z)- function(x,y-d,z) /2/d,
-                           function(x,y,z+d)- function(x,y,z-d) /2/d).normalized;
+    private Vector3 normal_from_F(Func<float, float, float, float> function, float x, float y, float z, float d = 0.01f)
+    {
+        return new Vector3(function(x + d, y, z) - function(x - d, y, z) / 2 / d,
+                           function(x, y + d, z) - function(x, y - d, z) / 2 / d,
+                           function(x, y, z + d) - function(x, y, z - d) / 2 / d).normalized;
     }
 
     bool isInside(float x, float y, float z)
     {
-        //check cones?
-        // float[] vert={x-5,y,z-5}; // move to center
-        float[] vert={x,y,z}; // move to center
-        foreach( Cone cone in cones ){
-            if(isLyingInCone(vert, cone.tip, cone.bot,cone.aperture))return true;
-        }
-
-        // float[] coord ={x-5,y,z-5};
-        // float[] tip = {0,10,0};
-        // float[] bot = {0,0,0};
-        //isLyingInCone(coord, tip, bot, 100)
         
-        return  y<1;  //floor
+        //check cones
+        // float[] vert={x-5,y,z-5}; // move to center
+        //float[] offset={-5,y,z-5}; // move to center
+        Vector3 offset = gameObject.transform.position;
+        
+        foreach (Cone cone in cones)
+        {
+            // if(flag %40==0){
+            //     Debug.Log(sdConeShort(new Vector3(x,y,z), new Vector2(0.5f, 0.5f), 10));
+            // }
+            //working ( 10 height pretty big)
+
+            Vector3 position = new Vector3(x-cone.position[0],y-cone.position[1] ,z-cone.position[2]);
+            position += offset;
+            Vector2 angle = new Vector2(0.5f, 0.5f);
+            if( sdConeShort(position, angle, cone.height) < 0) return true;
+            
+            
+            //if( sdConeExact(new Vector3(x-cone.tip[0],y-cone.tip[1],z-cone.tip[2]), new Vector2(0.5f, 0.5f), cone.height) < 0 ) return true;
+            //if( sdConeExact(new Vector3(x,y,z),  new Vector2(cone.bot[0], cone.bot[1]) ) < 0 ) return true;
+            //}
+        }
+        return y < floor; 
         // ball_function(x, y, z) > 0 ||
-
     }
 
-
-    float ball_function(float x, float y, float z)
-    {
-        //move 
-        x -= 5;
-        y -= 5;
-        z -= 5;
-        return 2.5f - Mathf.Sqrt(x * x + y * y + z * z) ; 
-    }
-
-    double circle_function(float x, float y, float z)
-    {
-        //move circle to the right
-        x = x - 5;
-        y = y - 5;
-        return 2.5 - Mathf.Sqrt(x * x + y * y);
-    }
 
     public void add_cone(Vector3 coord, float height, float aperture)
     {
-        Debug.Log("executed at "+coord.ToString());
-        float x=coord.x;
-        float y=coord.y;
-        float z=coord.z;
-        float[] tip = {x,y+height,z};
-        float[] bot = {x,y,z};
-        
+
+        //Debug.Log("executed at " + coord.ToString());
+        float x = coord.x;
+        float y = coord.y;
+        float z = coord.z;
+        float[] tip = { x, y + height, z };
+        float[] bot = { x, y, z };
+
         // float[] tip = {0,10,0};
         // float[] bot = {0,0,0};
-        Cone cone = new Cone(tip,bot,aperture);
+        Cone cone = new Cone(tip, bot, aperture);
         this.cones.Add(cone);
     }
+
 
     // Update is called once per frame
     void Update()
     {
-    //    regenerateMesh();
+        //    regenerateMesh();
     }
 
-    public void regenerateMesh(){
-        
+    //regenerate only a specific area? depending on cones dimension
+
+    public void regenerateMesh()
+    {
+
+        verticies.Clear();
+        indicies.Clear();
         // If one point is inside and not all points are inside place vertex -
         // another way to phrase it is just show the edges where a sign switch happens
         for (int x = 0; x <= areaSize; x++) //start a bit to the right to have neighbors
@@ -439,80 +523,4 @@ public class DualContouring3D : MonoBehaviour
 
         filter.mesh = mesh;
     }
-
-    /** Credit @https://stackoverflow.com/questions/10768142/verify-if-point-is-inside-a-cone-in-3d-space
-    * @param x coordinates of point to be tested 
-    * @param t coordinates of apex point of cone
-    * @param b coordinates of center of basement circle
-    * @param aperture in radians
-        Maybe move into cone
-    */
-    static public bool isLyingInCone(float[] x, float[] t, float[] b, 
-                                        float aperture){
-
-        // This is for our convenience
-        float halfAperture = aperture/2.0f;
-
-        // Vector pointing to X point from apex
-        float[] apexToXVect = dif(t,x);
-
-        // Vector pointing from apex to circle-center point.
-        float[] axisVect = dif(t,b);
-
-        // X is lying in cone only if it's lying in 
-        // infinite version of its cone -- that is, 
-        // not limited by "round basement".
-        // We'll use dotProd() to 
-        // determine angle between apexToXVect and axis.
-        bool isInInfiniteCone = dotProd(apexToXVect,axisVect)
-                                /magn(apexToXVect)/magn(axisVect)
-                                    >
-                                // We can safely compare cos() of angles 
-                                // between vectors instead of bare angles.
-                                Math.Cos(halfAperture);
-
-
-        if(!isInInfiniteCone) return false;
-
-        // X is contained in cone only if projection of apexToXVect to axis
-        // is shorter than axis. 
-        // We'll use dotProd() to figure projection length.
-        bool isUnderRoundCap = dotProd(apexToXVect,axisVect)
-                                /magn(axisVect)
-                                    <
-                                magn(axisVect);
-        return isUnderRoundCap;
-    }
-
-    static public float dotProd(float[] a, float[] b){
-        return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
-    }
-
-    static public float[] dif(float[] a, float[] b){
-        return (new float[]{
-                a[0]-b[0],
-                a[1]-b[1],
-                a[2]-b[2]
-        });
-    }
-
-    static public float magn(float[] a){
-        return (float) (Math.Sqrt(a[0]*a[0]+a[1]*a[1]+a[2]*a[2]));
-    }
-}
-
-public struct Cone
-{    
-    public float[] tip;
-    public float[] bot;
-    public float aperture;
-
-    public Cone(float[] tip, float[] bot,float aperture=100)
-    {
-        this.tip = tip;
-        this.bot = bot;
-        this.aperture = aperture;
-    }
-
-    
 }

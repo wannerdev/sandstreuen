@@ -5,7 +5,7 @@ public class ManomotionUIManagment : MonoBehaviour
 {
     private bool _showLicenseInfo;
     [SerializeField]
-    Text FPSValueText, processingTimeValueText, versionText, credits, daysLeft, licenseEnd, coords;
+    Text FPSValueText, processingTimeValueText, versionText, credits, daysLeft, licenseEnd;
     [SerializeField]
     GameObject licenseInfoGizmo;
 

@@ -9,7 +9,7 @@ public class Interactable : MonoBehaviour
     [SerializeField]
     InteractableCubeBehavior currentInteractableCube;
     // Text coordsValue;
-    public GameObject generator;
+    public GameObject generator,uimanager;
     public Camera cam;
 
     void start(){
@@ -70,19 +70,23 @@ public class Interactable : MonoBehaviour
                     //Vector3 place = new Vector3(detectedHand.tracking_info.palm_center.x*5, detectedHand.tracking_info.palm_center.y*5, Camera.main.transform.position.z*5);
                     
                     //create by camera position 
-                    Vector3 place = cam.transform.position;
-
+                    //Vector3 place = cam.transform.position;
+                    //place += Vector3.forward;
+                    
                     //create by palm position 
-                    // Vector3 point = detectedHand.tracking_info.palm_center;
-                    // point.z = detectedHand.tracking_info.depth_estimation;
-                    // Vector3 hand = cam.ScreenToWorldPoint(point);
+                    Vector3 place = detectedHand.tracking_info.palm_center;
+                    place.z = detectedHand.tracking_info.depth_estimation*5;
+                    Vector3 hand = cam.ScreenToWorldPoint(place);
 
-                    // float state = detectedHand.gesture_info.state; //needs probably a better variable
+                    float state = detectedHand.gesture_info.state; //needs probably a better variable
                     float angle = 0.5f;//+anglechange/10; *(state/12)
-
-                    place += Vector3.forward;
+                    float height = 5;
+                    
+                    
+                    JWUIManager debugui = uimanager.GetComponent<JWUIManager>();
+                    debugui.ConeValueText.text = place.ToString();
                     DualContouring3D d3D = generator.GetComponent<DualContouring3D>();
-                    d3D.add_cone(place, 5, angle);
+                    d3D.add_cone(place, height, angle);
                     d3D.regenerateMesh();
                     
                     //worked?

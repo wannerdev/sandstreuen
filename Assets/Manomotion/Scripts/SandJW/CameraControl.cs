@@ -37,39 +37,40 @@ public class CameraControl : MonoBehaviour
     void Update()
     {
         if (Input.GetMouseButton(0)){
-            Vector3 place = new Vector3(cam.transform.position.x ,cam.transform.position.y, Camera.main.transform.position.z);
+            Vector3 place = cam.transform.position;
 
             // coordsValue.text = place.ToString();
             // DualContouring3D dc = gameObject.GetComponent<DualContouring3D>();
             //DualContouring3D g = gameObject.AddComponent<DualContouring3D>();
-            //cam.transform.forward
-             generator.GetComponent<DualContouring3D>().add_cone(place, 5, 100);
-             generator.GetComponent<DualContouring3D>().regenerateMesh();
+            place += cam.transform.forward;
+            DualContouring3D d3D = generator.GetComponent<DualContouring3D>();
+            d3D.add_cone(place, 5, 0.5f);
+            d3D.regenerateMesh();
         }
 
-        for(int i=0; i < generator.GetComponent<DualContouring3D>().cones.Count;i++){
-            if (Input.GetKey(KeyCode.LeftArrow))
-            {
-                generator.GetComponent<DualContouring3D>().cones[i].position[0] = -3 + generator.GetComponent<DualContouring3D>().cones[i].position[0];
-                //transform.position += Vector3.left * speed * Time.deltaTime;
-             generator.GetComponent<DualContouring3D>().regenerateMesh();
-            }
-            if (Input.GetKey(KeyCode.RightArrow))
-            {
-                generator.GetComponent<DualContouring3D>().cones[i].position[0] =3   + generator.GetComponent<DualContouring3D>().cones[i].position[0];
-             generator.GetComponent<DualContouring3D>().regenerateMesh();
-            }
-            if (Input.GetKey(KeyCode.UpArrow))
-            {
-                generator.GetComponent<DualContouring3D>().cones[i].position[2] = 3  + generator.GetComponent<DualContouring3D>().cones[i].position[2];
-             generator.GetComponent<DualContouring3D>().regenerateMesh();
-            }
-            if (Input.GetKey(KeyCode.DownArrow))
-            {
-                generator.GetComponent<DualContouring3D>().cones[i].position[2] = -3 + generator.GetComponent<DualContouring3D>().cones[i].position[2];
-             generator.GetComponent<DualContouring3D>().regenerateMesh();
-            }
-        }
+        // for(int i=0; i < generator.GetComponent<DualContouring3D>().cones.Count;i++){
+        //     if (Input.GetKey(KeyCode.LeftArrow))
+        //     {
+        //         generator.GetComponent<DualContouring3D>().cones[i].position[0] = -3 + generator.GetComponent<DualContouring3D>().cones[i].position[0];
+        //         //transform.position += Vector3.left * speed * Time.deltaTime;
+        //      generator.GetComponent<DualContouring3D>().regenerateMesh();
+        //     }
+        //     if (Input.GetKey(KeyCode.RightArrow))
+        //     {
+        //         generator.GetComponent<DualContouring3D>().cones[i].position[0] =3   + generator.GetComponent<DualContouring3D>().cones[i].position[0];
+        //      generator.GetComponent<DualContouring3D>().regenerateMesh();
+        //     }
+        //     if (Input.GetKey(KeyCode.UpArrow))
+        //     {
+        //         generator.GetComponent<DualContouring3D>().cones[i].position[2] = 3  + generator.GetComponent<DualContouring3D>().cones[i].position[2];
+        //      generator.GetComponent<DualContouring3D>().regenerateMesh();
+        //     }
+        //     if (Input.GetKey(KeyCode.DownArrow))
+        //     {
+        //         generator.GetComponent<DualContouring3D>().cones[i].position[2] = -3 + generator.GetComponent<DualContouring3D>().cones[i].position[2];
+        //      generator.GetComponent<DualContouring3D>().regenerateMesh();
+        //     }
+        // }
         DoCalculation();
         lastMouse = Input.mousePosition;
 

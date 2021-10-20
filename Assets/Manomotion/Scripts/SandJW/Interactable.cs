@@ -9,7 +9,7 @@ public class Interactable : MonoBehaviour
     [SerializeField]
     InteractableCubeBehavior currentInteractableCube;
     // Text coordsValue;
-   // public GameObject generator;
+    public GameObject generator;
     public Camera cam;
 
     void start(){
@@ -26,13 +26,11 @@ public class Interactable : MonoBehaviour
 
     void DetectSandGestureIntuitiv()
     {
-        
-
         //All the information of the hand
         HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
 
         //HandInfo d;
-        //d.gesture_info.hand_side;
+
         //mi one
         if (detectedHand.gesture_info.mano_gesture_trigger == ManoGestureTrigger.CLICK)
         //detectedHand.gesture_info.hand_side == HandInfo. )
@@ -51,38 +49,48 @@ public class Interactable : MonoBehaviour
     {
 
         //All the information of the hand
-        HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
+        if(ManomotionManager.Instance != null){
+            HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
+        
 
-        //The click happens when I perform the Click Gesture : Open Pinch -> Closed Pinch -> Open Pinch 
-        if (detectedHand.gesture_info.mano_gesture_trigger == ManoGestureTrigger.CLICK)
-        {
-            
-            //Logic that should happen when I click
-            if (currentInteractableCube)
+            //The click happens when I perform the Click Gesture : Open Pinch -> Closed Pinch -> Open Pinch 
+            if (detectedHand.gesture_info.mano_gesture_trigger == ManoGestureTrigger.CLICK)
             {
-                currentInteractableCube.InteractWithCube();
-                // Vector3 point = detectedHand.tracking_info.palm_center;
-                // point.z = detectedHand.tracking_info.depth_estimation;
-                //0,0 bottom left of screen
-                //top right is 1,1
-                //depth estimation 0-1
-                //create by palm position ? + scale to max 5
-                //Vector3 place = new Vector3(detectedHand.tracking_info.palm_center.x*5, detectedHand.tracking_info.palm_center.y*5, Camera.main.transform.position.z*5);
                 
-                //create by camera position + offset for mesharea startpoint
-                Vector3 place = new Vector3(cam.transform.position.x +20,cam.transform.position.y+1, Camera.main.transform.position.z+1);
+                //Logic that should happen when I click
+                if (currentInteractableCube){
+                // {
+                    currentInteractableCube.InteractWithCube();
+                    // Vector3 point = detectedHand.tracking_info.palm_center;
+                    // point.z = detectedHand.tracking_info.depth_estimation;
+                    //0,0 bottom left of screen
+                    //top right is 1,1
+                    //depth estimation 0-1
+                    //create by palm position ? + scale to max 5
+                    //Vector3 place = new Vector3(detectedHand.tracking_info.palm_center.x*5, detectedHand.tracking_info.palm_center.y*5, Camera.main.transform.position.z*5);
+                    
+                    //create by camera position 
+                    Vector3 place = cam.transform.position;
 
-                // coordsValue.text = place.ToString();
-                //didn't work
-                // DualContouring3D g =  new DualContouring3D();
-                // g.add_cone(place, 5, 100);
-                // g.regenerateMesh();
-                
-                //worked?
-                //g.GetComponent<DualContouring3D>().add_cone(place, 5, 100);
-                //g.GetComponent<DualContouring3D>().regenerateMesh();
+                    //create by palm position 
+                    // Vector3 point = detectedHand.tracking_info.palm_center;
+                    // point.z = detectedHand.tracking_info.depth_estimation;
+                    // Vector3 hand = cam.ScreenToWorldPoint(point);
+
+                    // float state = detectedHand.gesture_info.state; //needs probably a better variable
+                    float angle = 0.5f;//+anglechange/10; *(state/12)
+
+                    place += Vector3.forward;
+                    DualContouring3D d3D = generator.GetComponent<DualContouring3D>();
+                    d3D.add_cone(place, 5, angle);
+                    d3D.regenerateMesh();
+                    
+                    //worked?
+                    //g.GetComponent<DualContouring3D>().add_cone(place, 5, 100);
+                    //g.GetComponent<DualContouring3D>().regenerateMesh();
+                }
             }
-        }
+            }
         //  if(Input.GetMouseButtonDown(0)){
             
             //    Vector3 place = new Vector3(cam.transform.position.x +20,cam.transform.position.y+1, Camera.main.transform.position.z+1);

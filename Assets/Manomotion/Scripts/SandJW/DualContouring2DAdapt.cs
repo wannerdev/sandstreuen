@@ -131,17 +131,17 @@ public class DualContouring2DAdapt : MonoBehaviour
         }
         //Q.Qef solver = new Qef(); 
         // Mat3 ata, Vec3 atb, Vec4 pointaccum,out Vec3 x)
-        Q.Vec3 result = new Q.Vec3(x,y,0);
-        Q.Vec3 col0 = new Q.Vec3(x,y,0),
-               col1 = new Q.Vec3(x,y,0),
-               col2 = new Q.Vec3(x,y,0);
-        Q.Mat3 aTa = new Q.Mat3(col0,col1,col2);
-        Q.Vec3 aTb = new Q.Vec3(x,y,0);
-        Q.Vec4 point = new Q.Vec4(x,y,0,0);
+        // Q.Vec3 result = new Q.Vec3(x,y,0);
+        // Q.Vec3 col0 = new Q.Vec3(x,y,0),
+        //        col1 = new Q.Vec3(x,y,0),
+        //        col2 = new Q.Vec3(x,y,0);
+        // Q.Mat3 aTa = new Q.Mat3(col0,col1,col2);
+        // Q.Vec3 aTb = new Q.Vec3(x,y,0);
+        // Q.Vec4 point = new Q.Vec4(x,y,0,0);
 
-        float res = Q.Qef.Solve(aTa, aTb, point, out result);
+        // float res = Q.Qef.Solve(aTa, aTb, point, out result);
 
-        return new Vector3(result.x,result.y,result.z);
+        return new Vector3(x,y,0);
         //return new Vector3(0,0,0);//solve_qef_2d(x, y, changes, normals);
         //return solve_qef_2d(x, y, changes, normals);
     }

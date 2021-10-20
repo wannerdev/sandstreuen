@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class PerspectivePan : MonoBehaviour {
-    private Vector3 touchStart;
+    private Vector3 touchStart,touchStart2;
     public Camera cam;
     public float groundZ = 0;
 
@@ -26,12 +26,11 @@ public class PerspectivePan : MonoBehaviour {
 
         
         if (Input.GetMouseButtonDown(1)){
-            touchStart = GetWorldPosition(groundZ);
+            touchStart2 = GetWorldPosition(groundZ);
         }
         if (Input.GetMouseButton(1)){
-            Vector3 direction = touchStart - GetWorldPosition(groundZ);
-            cam.transform.eulerAngles = transform.eulerAngles - new Vector3(0,10,0);
-            
+            Vector3 direction = touchStart2 - GetWorldPosition(groundZ);
+            cam.transform.eulerAngles = transform.eulerAngles - new Vector3(0,2,0);
         }
     }
     private Vector3 GetWorldPosition(float z){

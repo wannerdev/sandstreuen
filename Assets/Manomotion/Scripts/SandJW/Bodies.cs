@@ -32,6 +32,8 @@ public static class Bodies
         return (float)(Math.Sqrt(d) * Math.Sign(s));
     }
 
+    //Credit  iquilezles
+    //https://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
 static public float sdConeExact(Vector3 p, Vector2 q)
     {
         // c is the sin/cos of the angle, h is height

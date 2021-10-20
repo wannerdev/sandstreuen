@@ -18,9 +18,11 @@ public class DualContouring3D : MonoBehaviour
     internal Mesh mesh;
     internal MeshFilter filter;
     public List<Cone> cones;
+    public bool[,,] grid;
     public Material material;
     private int flag=0;
     public float floor=1;
+    internal MeshRenderer meshRenderer;
 
     /* pseudocode to create authentic sand
 
@@ -35,24 +37,23 @@ public class DualContouring3D : MonoBehaviour
     void Start()
     {
 
-        MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
+        meshRenderer = gameObject.AddComponent<MeshRenderer>();
         //Shader sh = new Shader();
         meshRenderer.sharedMaterial = material;
         //meshRenderer.material.SetColor("_Color", Color.red);
-        //meshRenderer.
 
         //inits
         mesh = new Mesh();
         this.cones = new List<Cone>();
 
         vertexe = new Vector3[areaSize + 1, areaSize + 1, areaSize + 1];
+        grid = new bool [areaSize +2, areaSize+2 , areaSize+2 ];
         indicies = new List<int>();
         verticies = new List<Vector3>();
         // todo save mesh array
         //area = new float[areaSize*areaSize*areaSize*3];
+        //in the future maybe use onedimensional array with the float values instead of boolean
 
-        Vector3 point = new Vector3(0, 0, 0);
-        add_cone(point, 4, 100);
 
         filter = gameObject.AddComponent<MeshFilter>();
         var mesh2 = new Mesh();
@@ -80,7 +81,7 @@ public class DualContouring3D : MonoBehaviour
 
         // If one point is inside and not all points are inside place vertex -
         // another way to phrase it is just show the edges where a sign switch happens
-        for (int x = 0; x <= areaSize; x++) //start a bit to the right to have neighbors
+        for (int x = 0; x <= areaSize; x++) 
         {
             for (int y = 0; y <= areaSize; y++)
             {
@@ -94,7 +95,6 @@ public class DualContouring3D : MonoBehaviour
 
                         if (solid1 ^ solid2)
                         {
-                            // if()
                             if (!solid2)
                             {
                                 verticies.Add(vertexe[x - 1, y - 1, z]);
@@ -169,7 +169,6 @@ public class DualContouring3D : MonoBehaviour
 
                         if (solid1 ^ solid2)
                         {
-
                             if (!solid2)
                             {
                                 verticies.Add(vertexe[x, y - 1, z - 1]);
@@ -206,6 +205,7 @@ public class DualContouring3D : MonoBehaviour
         mesh.SetIndices(indicies.ToArray(), MeshTopology.Quads, 0);
 
         filter.mesh = mesh;
+        //Move  0,0,0 in the middle
         this.transform.position -= new Vector3(areaSize/2,0,areaSize/2);
     }
 
@@ -282,18 +282,24 @@ public class DualContouring3D : MonoBehaviour
         //a
         //Q.Qef solver = new Qef(); 
         // Mat3 ata, Vec3 atb, Vec4 pointaccum,out Vec3 x)
-        Qef.Vec3 result = new Qef.Vec3(x, y, z);
-        Qef.Vec3 col0 = new Qef.Vec3(x, y, z),
-               col1 = new Qef.Vec3(x, y, z),
-               col2 = new Qef.Vec3(x, y, z);
-        Qef.Mat3 aTa = new Qef.Mat3(col0, col1, col2);
-        Qef.Vec3 aTb = new Qef.Vec3(x, y, z);
-        Qef.Vec4 point = new Qef.Vec4(x, y, z, z);
+        // Qef.Vec3 result = new Qef.Vec3(x, y, z);
+        // Qef.Vec3 col0 = new Qef.Vec3(x, y, z),
+        //        col1 = new Qef.Vec3(x, y, z),
+        //        col2 = new Qef.Vec3(x, y, z);
+        // Qef.Mat3 aTa = new Qef.Mat3(col0, col1, col2);
+        // Qef.Vec3 aTb = new Qef.Vec3(x, y, z);
+        // Qef.Vec4 pointaccum = new Qef.Vec4(x, y, z, z);
+        // Qef
 
-        float res = Qef.Qef.Solve(aTa, aTb, point, out result);
+        //numpy.
+        // Numpy.np.linalg.lstsq(a,b, 0.05f);
 
-        //return new Vector3(result.x, result.y, result.z);
-        return vec;
+        // float res = Qef.Solve(aTa, aTb, pointaccum, out result);
+
+        // return new Vector3(result.x, result.y, result.z);
+        return new Vector3(x, y, z);
+        //return Qef.(positions, normals);
+        // return Qef.solve_qef_3d(x, y, changes, normals);
     }
 
     private float adapt(float v0, float v1)
@@ -334,69 +340,80 @@ public class DualContouring3D : MonoBehaviour
                            function(x, y, z + d) - function(x, y, z - d) / 2 / d).normalized;
     }
 
-    bool isInside(float x, float y, float z)
+    bool isInside(int x, int y, int z)
     {
+        if (grid[x,y,z] || y < floor)return true;
+        return false;
         
-        //check cones
-        // float[] vert={x-5,y,z-5}; // move to center
-        //float[] offset={-5,y,z-5}; // move to center
-        Vector3 offset = gameObject.transform.position;
-        
-        foreach (Cone cone in cones)
-        {
-            // if(flag %40==0){
-            //     Debug.Log(sdConeShort(new Vector3(x,y,z), new Vector2(0.5f, 0.5f), 10));
-            // }
-            //working ( 10 height pretty big)
+        // Vector3 offset = gameObject.transform.position;        
+        // //check cones
+        // foreach (Cone cone in cones)
+        // {
+        //     // if(flag %40==0){
+        //     //     Debug.Log(sdConeShort(new Vector3(x,y,z), new Vector2(0.5f, 0.5f), 10));
+        //     // }
+        //     //working ( 10 height pretty big)
 
-            Vector3 position = new Vector3(x-cone.position[0],y-cone.position[1] ,z-cone.position[2]);
-            position += offset;
-            Vector2 angle = new Vector2(0.5f, 0.5f);
-            if( sdConeShort(position, angle, cone.height) < 0) return true;
+        //     Vector3 position = new Vector3(x-cone.position[0],y-cone.position[1] ,z-cone.position[2]);
+        //     position += offset;
+        //     Vector2 angle = new Vector2(0.5f, 0.5f);#
+        //     //< 0??
+        //     //if( sdConeShort(position, angle, cone.height) < 1) return true;
             
-            
-            //if( sdConeExact(new Vector3(x-cone.tip[0],y-cone.tip[1],z-cone.tip[2]), new Vector2(0.5f, 0.5f), cone.height) < 0 ) return true;
-            //if( sdConeExact(new Vector3(x,y,z),  new Vector2(cone.bot[0], cone.bot[1]) ) < 0 ) return true;
-            //}
-        }
-        return y < floor; 
+        //     //if( sdConeExact(new Vdwctor3(x-cone.tip[0],y-cone.tip[1],z-cone.tip[2]), new Vector2(0.5f, 0.5f), cone.height) < 0 ) return true;
+        //     //if( sdConeExact(new Vector3(x,y,z),  new Vector2(cone.bot[0], cone.bot[1]) ) < 0 ) return true;
+        //     //}
+        // } 
+        // return y < floor; 
         // ball_function(x, y, z) > 0 ||
+        
     }
 
 
-    public void add_cone(Vector3 coord, float height, float aperture)
+    public void add_cone(Vector3 coord, float height, float aperture=0.5f)
     {
-
-        //Debug.Log("executed at " + coord.ToString());
-        float x = coord.x;
-        float y = coord.y;
-        float z = coord.z;
-        float[] tip = { x, y + height, z };
-        float[] bot = { x, y, z };
-
-        // float[] tip = {0,10,0};
-        // float[] bot = {0,0,0};
-        Cone cone = new Cone(tip, bot, aperture);
-        this.cones.Add(cone);
+        Debug.Log("executed at " + coord.ToString());
+        Vector3 offset = gameObject.transform.position;
+        Vector2 angle = new Vector2(aperture, aperture);
+        for (int x = 0; x <= areaSize; x++) 
+        {
+            for (int y = 0; y <= areaSize; y++)
+            {
+                for (int z = 0; z <= areaSize; z++){
+                    //Vector3 position = new Vector3(x-coord.x,y-coord.y ,z-coord.z);
+                    Vector3 position = new Vector3(x-coord.x,y-coord.y ,z-coord.z);
+                    position += offset;
+                    if( sdConeExact(position, angle, height) < 1) {
+                        grid[x,y,z]=true;
+                        // flag=1;
+                    }
+                }
+            }
+        }
+        // Debug.Log("Is flag "+flag);
+        // flag=0;
     }
+
+
 
 
     // Update is called once per frame
     void Update()
     {
-        //    regenerateMesh();
+        // regenerateMesh();
     }
 
     //regenerate only a specific area? depending on cones dimension
 
     public void regenerateMesh()
     {
-
+        //Without this you can only place a certain amount of cones
+        //it seems there is a maximum to the verticies you can add, no error is displayed when it happens!
         verticies.Clear();
         indicies.Clear();
         // If one point is inside and not all points are inside place vertex -
         // another way to phrase it is just show the edges where a sign switch happens
-        for (int x = 0; x <= areaSize; x++) //start a bit to the right to have neighbors
+        for (int x = 0; x <= areaSize; x++) 
         {
             for (int y = 0; y <= areaSize; y++)
             {
@@ -407,10 +424,8 @@ public class DualContouring3D : MonoBehaviour
                         //check edge for sign change
                         bool solid1 = isInside(x, y, z + 0);
                         bool solid2 = isInside(x, y, z + 1);
-
                         if (solid1 ^ solid2)
                         {
-                            // if()
                             if (!solid2)
                             {
                                 verticies.Add(vertexe[x - 1, y - 1, z]);

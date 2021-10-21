@@ -8,10 +8,13 @@ public class JWUIManager : MonoBehaviour
     [SerializeField]
     public Text ConeValueText, CameraValue; 
     public GameObject generator;
+    
+    Camera cam;
     // Start is called before the first frame update
     void Start()
     {
         
+        cam =  this.GetComponentInParent<Camera>();
     }
 
     // Update is called once per frame
@@ -23,7 +26,6 @@ public class JWUIManager : MonoBehaviour
         // ConeValueText.text += "Z: "+generator.GetComponent<DualContouring3D>().cones[size-1].position[2];
         // ConeValueText.text
         
-        var cam =  this.GetComponentInParent<Camera>();
         CameraValue.text = "Camera Position X:"+cam.transform.position.ToString();
         // CameraValue.text += " Y:"+cam.transform.position.y;//ToString();
         // CameraValue.text += " Z:"+cam.transform.position.z;//ToString();

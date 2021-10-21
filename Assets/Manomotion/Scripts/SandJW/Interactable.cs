@@ -11,8 +11,11 @@ public class Interactable : MonoBehaviour
     // Text coordsValue;
     public GameObject generator,uimanager;
     public Camera cam;
-
+    DualContouring3D d3D;
+    JWUIManager debugui;
     void start(){
+        d3D = generator.GetComponent<DualContouring3D>();
+        debugui = uimanager.GetComponent<JWUIManager>();
     }
     // Update is called once per frame
     void Update()
@@ -66,7 +69,7 @@ public class Interactable : MonoBehaviour
                     //0,0 bottom left of screen
                     //top right is 1,1
                     //depth estimation 0-1
-                    //create by palm position ? + scale to max 5
+                    //create by palm position ? + scale to max 2
                     //Vector3 place = new Vector3(detectedHand.tracking_info.palm_center.x*5, detectedHand.tracking_info.palm_center.y*5, Camera.main.transform.position.z*5);
                     
                     //create by camera position 
@@ -75,7 +78,7 @@ public class Interactable : MonoBehaviour
                     
                     //create by palm position 
                     Vector3 place = detectedHand.tracking_info.palm_center;
-                    place.z = detectedHand.tracking_info.depth_estimation*5;
+                    place.z = detectedHand.tracking_info.depth_estimation*2;
                     Vector3 hand = cam.ScreenToWorldPoint(place);
 
                     float state = detectedHand.gesture_info.state; //needs probably a better variable
@@ -83,26 +86,13 @@ public class Interactable : MonoBehaviour
                     float height = 5;
                     
                     
-                    JWUIManager debugui = uimanager.GetComponent<JWUIManager>();
                     debugui.ConeValueText.text = place.ToString();
-                    DualContouring3D d3D = generator.GetComponent<DualContouring3D>();
                     d3D.add_cone(place, height, angle);
                     d3D.regenerateMesh();
                     
-                    //worked?
-                    //g.GetComponent<DualContouring3D>().add_cone(place, 5, 100);
-                    //g.GetComponent<DualContouring3D>().regenerateMesh();
                 }
             }
-            }
-        //  if(Input.GetMouseButtonDown(0)){
-            
-            //    Vector3 place = new Vector3(cam.transform.position.x +20,cam.transform.position.y+1, Camera.main.transform.position.z+1);
-                
-               // coordsValue.text = place.ToString();
-        //        generator.GetComponent<DualConturing3D>().add_cone(place, 5, 100);
-        //        generator.GetComponent<DualConturing3D>().regenerateMesh();
-        // }
+        }
 
     }
 

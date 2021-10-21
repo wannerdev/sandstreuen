@@ -15,6 +15,13 @@ public class PerspectivePan : MonoBehaviour {
         if (SystemInfo.deviceType == DeviceType.Desktop)
         {
             this.enabled = false;
+            this.moveJoystick.enabled = false;
+            this.rotateJoystick.enabled = false;
+        }else{
+            
+            this.enabled = true;
+            this.moveJoystick.enabled = true;
+            this.rotateJoystick.enabled = true;
         }
     }
 	// Update is called once per frame

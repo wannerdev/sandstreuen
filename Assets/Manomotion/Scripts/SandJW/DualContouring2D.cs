@@ -19,6 +19,7 @@ public class DualContouring2D : MonoBehaviour
         var verticies = new List<Vector3>();
 
         
+        
         var mesh2 = new Mesh();
         var adaptedV = new List<Vector3>();
 

@@ -24,32 +24,30 @@ public class DualContouring3D : MonoBehaviour
     public float floor=1;
     internal MeshRenderer meshRenderer;
 
-    /* pseudocode to create authentic sand
-
-        start when hand gesture fist detected && angle correct 
-        get coord from hand
-        add coords to list of vertices inside / or add cone object to list?
-        increase height of cone
-        */
-
     // Start is called before the first frame update
-
     void Start()
     {
 
-        meshRenderer = gameObject.AddComponent<MeshRenderer>();
-        //Shader sh = new Shader();
-        meshRenderer.sharedMaterial = material;
-        //meshRenderer.material.SetColor("_Color", Color.red);
+        //Move  0,0,0 in the middle
+        this.transform.position -= new Vector3(areaSize/2,0,areaSize/2);
+
+        meshRenderer = gameObject.GetComponent<MeshRenderer>();
+        meshRenderer.material = material;
 
         //inits
         mesh = new Mesh();
         this.cones = new List<Cone>();
 
+        //
         vertexe = new Vector3[areaSize + 1, areaSize + 1, areaSize + 1];
+        
+        //generated space
         grid = new bool [areaSize +2, areaSize+2 , areaSize+2 ];
+        
+        //Surface Quads
         indicies = new List<int>();
         verticies = new List<Vector3>();
+
         // todo save mesh array
         //area = new float[areaSize*areaSize*areaSize*3];
         //in the future maybe use onedimensional array with the float values instead of boolean
@@ -61,7 +59,7 @@ public class DualContouring3D : MonoBehaviour
 
         var faces = new List<Vector3>();
 
-
+        //Generate vertexes
         for (int x = 0; x <= areaSize; x++)
         {
             for (int y = 0; y <= areaSize; y++)
@@ -200,13 +198,18 @@ public class DualContouring3D : MonoBehaviour
                 }
             }
         }
+        
         mesh.vertices = verticies.ToArray();
         Vector3[] vertices = mesh.vertices;
         mesh.SetIndices(indicies.ToArray(), MeshTopology.Quads, 0);
 
+
+        
+		mesh.vertices = vertices;
         filter.mesh = mesh;
-        //Move  0,0,0 in the middle
-        this.transform.position -= new Vector3(areaSize/2,0,areaSize/2);
+        
+        mesh.RecalculateNormals();
+        mesh.RecalculateTangents();
     }
 
     private Vector3 find_vertex(float x, float y, float z, Vector3 normal)
@@ -398,16 +401,16 @@ public class DualContouring3D : MonoBehaviour
 
 
     // Update is called once per frame
-    void Update()
-    {
-        // regenerateMesh();
-    }
+    // void Update()
+    // {
+    //     // regenerateMesh();
+    // }
 
     //regenerate only a specific area? depending on cones dimension
 
     public void regenerateMesh()
     {
-        //Without this you can only place a certain amount of cones
+        //Without Clearing you can only place a certain amount of cones
         //it seems there is a maximum to the verticies you can add, no error is displayed when it happens!
         verticies.Clear();
         indicies.Clear();
@@ -532,10 +535,14 @@ public class DualContouring3D : MonoBehaviour
                 }
             }
         }
+        
+
         mesh.vertices = verticies.ToArray();
         Vector3[] vertices = mesh.vertices;
         mesh.SetIndices(indicies.ToArray(), MeshTopology.Quads, 0);
 
+        mesh.RecalculateNormals();
+        mesh.RecalculateTangents();
         filter.mesh = mesh;
     }
 }

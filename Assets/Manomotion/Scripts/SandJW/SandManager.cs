@@ -67,7 +67,6 @@ public class SandManager : MonoBehaviour
 
         uimanager.changeMode(mode.ToString());
     }
-
     public void changeMaterial(int selected){
         uimanager.changeMaterial(selected);
     }

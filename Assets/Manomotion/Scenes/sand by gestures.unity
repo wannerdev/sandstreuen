@@ -157,6 +157,7 @@ MonoBehaviour:
   areaSize: 80
   notAdaptive: 1
   floor: -1
+  offset: {x: 0, y: 0, z: 0}
 --- !u!4 &16948155
 Transform:
   m_ObjectHideFlags: 0
@@ -1783,7 +1784,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Mode:'
+  m_Text: Mode:SandDry
 --- !u!222 &1332008578
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1921,7 +1922,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 169ed5e15e7f35043be655543103248c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  areaSize: 10
+  areaSize: 80
+  d3D: {fileID: 16948154}
 --- !u!4 &1748315344
 Transform:
   m_ObjectHideFlags: 0

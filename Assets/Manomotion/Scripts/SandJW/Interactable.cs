@@ -83,18 +83,20 @@ public class Interactable : MonoBehaviour
     void DetectHandGestureTap()
     {
 
-        //All the information of the hand
-        HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
+        if(ManomotionManager.Instance != null){
+            //All the information of the hand
+            HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
 
-        if (detectedHand.gesture_info.mano_gesture_continuous == ManoGestureContinuous.POINTER_GESTURE)
-        {
-            // flag=1;
-            //Logic that should happen when I click
-           
-            selected +=1;
-            if (selected ==40)selected=0;
-            uimanager.changeMaterial(selected/10);
-        } 
+            if (detectedHand.gesture_info.mano_gesture_continuous == ManoGestureContinuous.POINTER_GESTURE)
+            {
+                // flag=1;
+                //Logic that should happen when I click
+            
+                selected +=1;
+                if (selected ==40)selected=0;
+                uimanager.changeMaterial(selected/10);
+            } 
+        }
 
     }
 

@@ -40,7 +40,7 @@ public class JWUIManager : MonoBehaviour
 
     internal void changeMaterial(int selected)
     {
-        sand.text = Bodies.sandname[selected];
+        sand.text = "Material:"+Bodies.sandname[selected];
     }
 
     internal void conePosition(Vector3 place)

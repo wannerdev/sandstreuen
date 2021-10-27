@@ -20,8 +20,8 @@ public class DualContouring3D : MonoBehaviour
     internal List<int> indicies;
 
     public bool[,,] grid;
-    internal float[] sdf;
-    Vector3 offset;
+    internal float[,,] sdfgrid;
+    public Vector3 offset;
 
     internal Mesh mesh;
     internal MeshFilter filter;
@@ -51,6 +51,7 @@ public class DualContouring3D : MonoBehaviour
         
         //generated space
         grid = new bool [areaSize +2, areaSize+2 , areaSize+2 ];
+        //sdfgrid = new float [areaSize +2, areaSize+2 , areaSize+2 ];
         
         //Surface Quads
         indicies = new List<int>();
@@ -473,16 +474,32 @@ public class DualContouring3D : MonoBehaviour
     {
           for (int x = 0; x <= areaSize; x++) 
         {
-            for (int y = 0; y <= areaSize; y++)
+            for (int y = 1; y <= areaSize; y++)
             {
                 for (int z = 0; z <= areaSize; z++){
                     if(grid[x,y,z]){
-                        if( y==0 || grid[x,y-1,z] ){
-                            //ground below
-                        }else {
+                         if(!grid[x,y-1,z]){
                             //no ground
                             grid[x,y,z] = false;
                             grid[x,y-1,z] =true;
+                        }else if(!grid[x+1,y-1,z]){
+
+                            grid[x,y,z] = false;
+                            grid[x+1,y-1,z] =true;
+                        }else if(x!=0 && !grid[x-1,y-1,z]){
+
+                            grid[x,y,z] = false;
+                            grid[x-1,y-1,z] =true;
+                        }else if(!grid[x,y-1,z+1]){
+
+                            grid[x,y,z] = false;
+                            grid[x,y-1,z+1] =true;
+                        }else if(z !=0 && !grid[x-1,y-1,z-1]){
+
+                            grid[x,y,z] = false;
+                            grid[x,y-1,z-1] =true;
+                        }else if( y==0 || grid[x,y-1,z] ){
+                            //ground below
                         }
                     }
                         // flag=1;
@@ -498,6 +515,8 @@ public class DualContouring3D : MonoBehaviour
         //it seems there is a maximum to the verticies you can add, no error is displayed when it happens!
         verticies.Clear();
         indicies.Clear();
+
+        mesh.triangles.Initialize(); // = null;
         // If one point is inside and not all points are inside place vertex -
         // another way to phrase it is just show the edges where a sign switch happens
         for (int x = 0; x <= areaSize; x++) 
@@ -624,10 +643,12 @@ public class DualContouring3D : MonoBehaviour
         mesh.vertices = verticies.ToArray();
         Vector3[] vertices = mesh.vertices;
         mesh.SetIndices(indicies.ToArray(), MeshTopology.Quads, 0);
+		mesh.vertices = vertices;
+        filter.mesh = mesh;
 
         mesh.RecalculateNormals();
         mesh.RecalculateTangents();
-        filter.mesh = mesh;
         gravity();
+
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -34,6 +35,10 @@ public class SandManager : MonoBehaviour
             if(d3D.add_single(place, selected)){
                 d3D.regenerateMesh();
                 uimanager.resetWarning();
+                
+                place.x +=Math.Abs(d3D.offset.x);
+                place.y +=Math.Abs(d3D.offset.y);
+                place.z +=Math.Abs(d3D.offset.z);
                 uimanager.conePosition(place);
             }else{
                 uimanager.warnOutside();

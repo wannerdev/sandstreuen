@@ -17,6 +17,7 @@ public class PerspectivePan : MonoBehaviour {
             FixedJoystick[] k = this.GetComponentsInChildren<FixedJoystick>();
             if(k !=null){
                 // popUp1 = GameObject.FindWithTag (tagName);
+                //Move UI out of camera, disabling doesn't work
                 Vector3 currentPosition = k[0].transform.localPosition;
                 k[0].transform.localPosition = new Vector3 (1000, 1000);
                 Vector3 currentPosition2 = k[1].transform.localPosition;

@@ -7,8 +7,7 @@ using UnityEngine.UI;
 public class JWUIManager : MonoBehaviour
 {
     [SerializeField]
-    public Text ConeValueText, CameraValue,depth,warning,sand; 
-    public GameObject generator;
+    public Text ConeValueText, CameraValue,depth,warning,sand,mode; 
     
     Camera cam;
     // Start is called before the first frame update
@@ -34,8 +33,29 @@ public class JWUIManager : MonoBehaviour
         // CameraValue.text = "Z: "+GetComponent<DualContouring3D>().cones[size-1].bot[2];
     }
 
+    internal void resetWarning()
+    {
+        warning.text = "";
+    }
+
     internal void changeMaterial(int selected)
     {
         sand.text = Bodies.sandname[selected];
+    }
+
+    internal void conePosition(Vector3 place)
+    {
+        ConeValueText.text = place.ToString();
+    }
+    
+    internal void changeMode(String modeVal)
+    {
+        mode.text = "Mode: "+modeVal;
+        
+    }
+
+    internal void warnOutside()
+    {
+        warning.text = "Outside of Area";
     }
 }

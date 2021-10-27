@@ -22,10 +22,8 @@ public class CameraControl : MonoBehaviour
     public Vector3 lastMouse = new Vector3(255, 255, 255); //kind of in the middle of the screen, rather than at the top (play)
     private float totalRun = 1.0f;
 
-    public GameObject generator;
+    public SandManager sandManager;
     private Camera cam;
-
-    public  JWUIManager uimanager ;
     private int selected=0;
 
     private void Start()
@@ -41,32 +39,32 @@ public class CameraControl : MonoBehaviour
         // }
         lastMouse = Input.mousePosition;
         this.cam = this.GetComponent<Camera>();
-        uimanager = uimanager.GetComponent<JWUIManager>();
+        sandManager = sandManager.GetComponent<SandManager>();
     }
     void Update()
     {
         if (Input.GetMouseButton(0)){
             Vector3 place = cam.transform.position;
-
-            // coordsValue.text = place.ToString();
-            // DualContouring3D dc = gameObject.GetComponent<DualContouring3D>();
-            //DualContouring3D g = gameObject.AddComponent<DualContouring3D>();
             place += cam.transform.forward;
-            DualContouring3D d3D = generator.GetComponent<DualContouring3D>();
-            if(d3D.add_cone(place, 5, selected)){
-                // d3D.regenerateMesh();
-                uimanager.warning.text = "";
-            }else{
-                //uimanager //.GetComponent<JWUIManager>();
-                uimanager.warning.text = "Outside of Area";
-            }
+            sandManager.add(place, 5, selected);
         }
         if (Input.GetMouseButton(1)){
             selected +=1;
             if (selected ==4)selected=0;
-            uimanager.changeMaterial(selected);
+            sandManager.changeMaterial(selected);
         }
 
+        if (Input.GetKey(KeyCode.UpArrow)){
+            selected +=1;
+            if (selected ==4)selected=0;
+            sandManager.changeMode("single");
+        }
+        
+        if (Input.GetKey(KeyCode.DownArrow)){
+            selected +=1;
+            if (selected ==4)selected=0;
+            sandManager.changeMode("cone");
+        }
         //Move cones old object oriented way
         // for(int i=0; i < generator.GetComponent<DualContouring3D>().cones.Count;i++){
         //     if (Input.GetKey(KeyCode.LeftArrow))

@@ -21,6 +21,7 @@ public class DualContouring3D : MonoBehaviour
 
     public bool[,,] grid;
     internal float[] sdf;
+    Vector3 offset;
 
     internal Mesh mesh;
     internal MeshFilter filter;
@@ -37,6 +38,7 @@ public class DualContouring3D : MonoBehaviour
 
         //Move  0,0,0 in the middle
         this.transform.position -= new Vector3(areaSize/2,0,areaSize/2);
+        offset = gameObject.transform.position;
 
         meshRenderer = gameObject.GetComponent<MeshRenderer>();
         meshRenderer.material = material;
@@ -410,16 +412,22 @@ public class DualContouring3D : MonoBehaviour
         
     }
 
+    public bool add_single(Vector3 coord, int material){
+        if(checkBounds(coord)){
+            coord.x +=Math.Abs(offset.x);
+            coord.y +=Math.Abs(offset.y);
+            coord.z +=Math.Abs(offset.z);
+            grid[Math.Abs((int)coord.x), Math.Abs((int)coord.y) , Math.Abs((int)coord.z)]=true;
+            return true;
+        }
+        return false;
+    }
 
     public bool add_cone(Vector3 coord, float height, int material)
     {
         float aperture = Bodies.sands[material];
         Debug.Log("executed at " + coord.ToString());
-        if(coord.x >(areaSize/2) || coord.y > (areaSize/2) || coord.z >(areaSize/2) ||
-           coord.x <(-areaSize/2) || coord.y < (-areaSize/2) || coord.z <(-areaSize/2) ){
-            return false; //out of bounds
-        }
-        Vector3 offset = gameObject.transform.position;
+        if(!checkBounds(coord)) return false;
         Vector2 angle = new Vector2((float)Math.Sin(aperture),(float) Math.Cos(aperture));
         bool success = true;
         for (int x = 0; x <= areaSize; x++) 
@@ -430,7 +438,7 @@ public class DualContouring3D : MonoBehaviour
                     //Vector3 position = new Vector3(x-coord.x,y-coord.y ,z-coord.z);
                     Vector3 position = new Vector3(x-coord.x,y-coord.y ,z-coord.z);
                     position += offset;
-                    if( sdConeExact(position, angle, height) < 1) {
+                    if( sdConeExact(position, angle, height) < 1) {//to test 0.5
                         grid[x,y,z]=true;
                     }
                 }
@@ -440,6 +448,15 @@ public class DualContouring3D : MonoBehaviour
         // Debug.Log("Is flag "+flag);
         // flag=0;
     }
+
+    private bool checkBounds(Vector3 coord){
+        if(coord.x >(areaSize/2) || coord.y > (areaSize/2) || coord.z >(areaSize/2) ||
+           coord.x <(-areaSize/2) || coord.y < (-areaSize/2) || coord.z <(-areaSize/2) ){
+            return false; //out of bounds
+        }
+        return true;
+    }
+
 
 
 

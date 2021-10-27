@@ -6,20 +6,18 @@ using UnityEngine.UI;
 
 public class Interactable : MonoBehaviour
 {
-    [SerializeField]
-    InteractableCubeBehavior currentInteractableCube;
-    // Text coordsValue;
-    public GameObject generator;
+    public SandManager sandManager;
     public Camera cam;
-    DualContouring3D d3D;
     public JWUIManager uimanager;
-    public int selected=0;
+    private int selected=0;
+
     private bool wave;
     private bool wave2;
     private int flag=0;
 
     void start(){
-        // d3D = generator.GetComponent<DualContouring3D>();
+        selected =((int)sandManager.coneAngle)*10;
+        
         uimanager = uimanager.GetComponent<JWUIManager>();
 		// ManomotionManager.OnManoMotionFrameProcessed += HandleManoMotionFrameUpdated;
     }
@@ -34,26 +32,6 @@ public class Interactable : MonoBehaviour
         // DetectHandGestureRelease();
     }
 
-    void DetectSandGestureIntuitiv()
-    {
-        //All the information of the hand
-        HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
-
-        //HandInfo d;
-
-        //mi one
-        if (detectedHand.gesture_info.mano_gesture_trigger == ManoGestureTrigger.CLICK)
-        //detectedHand.gesture_info.hand_side == HandInfo. )
-        {
-            
-            //Logic that should happen when I click
-            if (currentInteractableCube)
-            {
-                currentInteractableCube.InteractWithCube();
-            }
-        }
-
-    }
 
     void DetectHandGestureClick()
     {
@@ -61,7 +39,7 @@ public class Interactable : MonoBehaviour
         //All the information of the hand
         if(ManomotionManager.Instance != null){
             HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
-            //move to ui
+            
             uimanager.depth.text = "depth:"+detectedHand.tracking_info.depth_estimation+" ";
         
 
@@ -70,47 +48,32 @@ public class Interactable : MonoBehaviour
             {
                 
                 //Logic that should happen when I click
-                if (currentInteractableCube){
-                // {
-                    currentInteractableCube.InteractWithCube();
-                    // Vector3 point = detectedHand.tracking_info.palm_center;
-                    // point.z = detectedHand.tracking_info.depth_estimation;
-                    //0,0 bottom left of screen
-                    //top right is 1,1
-                    //depth estimation 0-1
-                    //create by palm position ? + scale to max 2
-                    //Vector3 place = new Vector3(detectedHand.tracking_info.palm_center.x*5, detectedHand.tracking_info.palm_center.y*5, Camera.main.transform.position.z*5);
-                    
-                    //create by camera position 
-                    //Vector3 place = cam.transform.position;
-                    //place += Vector3.forward;
-                    
-                    d3D = generator.GetComponent<DualContouring3D>();
-                    //create by palm position 
-                    Vector3 place = detectedHand.tracking_info.palm_center;
-                    // place.z = detectedHand.tracking_info.depth_estimation*9;
-                    //place = cam.transform.position+cam.ScreenToWorldPoint(place);//Adapt placing coords to orientation
-                    
-                    place = ManoUtils.Instance.CalculateWorldPosition(place,detectedHand.tracking_info.depth_estimation*10);
-                    
-                    //place += cam.transporm.position;
-                    // place = cam.transform.forward * detectedHand.tracking_info.depth_estimation*5;
-                    float state = detectedHand.gesture_info.state; //needs probably a better variable
-                    float angle = 0.5f;//+anglechange/10; *(state/12)
-                    float height = 1;
-                    
-                    
-                    //todo move to uimanager
-                    uimanager.ConeValueText.text = place.ToString();
-                    
-                    if(d3D.add_cone(place, height, selected/10)){
-                        d3D.regenerateMesh();
-                    }else{
-                        uimanager.warning.text = "Outside of Area";
-                    }
-                    
-                    
-                }
+                // Vector3 point = detectedHand.tracking_info.palm_center;
+                // point.z = detectedHand.tracking_info.depth_estimation;
+                //0,0 bottom left of screen
+                //top right is 1,1
+                //depth estimation 0-1
+                //create by palm position ? + scale to max 2
+                //Vector3 place = new Vector3(detectedHand.tracking_info.palm_center.x*5, detectedHand.tracking_info.palm_center.y*5, Camera.main.transform.position.z*5);
+                
+                //create by camera position 
+                //Vector3 place = cam.transform.position;
+                //place += Vector3.forward;
+                
+                //create by palm position 
+                Vector3 place = detectedHand.tracking_info.palm_center;
+                // place.z = detectedHand.tracking_info.depth_estimation*9;
+                //place = cam.transform.position+cam.ScreenToWorldPoint(place);//Adapt placing coords to orientation
+                
+                place = ManoUtils.Instance.CalculateWorldPosition(place,detectedHand.tracking_info.depth_estimation*10);
+                
+                //place += cam.transporm.position;
+                // place = cam.transform.forward * detectedHand.tracking_info.depth_estimation*5;
+                float state = detectedHand.gesture_info.state; //needs probably a better variable
+                float angle = 0.5f;//+anglechange/10; *(state/12)
+                float height = 1;
+                //divide by 10 to switch slow
+                sandManager.add(place,height,selected/10);          
             }
         }
 
@@ -135,24 +98,24 @@ public class Interactable : MonoBehaviour
 
     }
 
-    void DetectHandGesturePinch()
-    {
+    // void DetectHandGesturePinch()
+    // {
 
-        //All the information of the hand
-        HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
+    //     //All the information of the hand
+    //     HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
 
-        //mi one
-        if (detectedHand.gesture_info.mano_gesture_trigger == ManoGestureTrigger.GRAB_GESTURE)
-        {
+    //     //mi one
+    //     if (detectedHand.gesture_info.mano_gesture_trigger == ManoGestureTrigger.GRAB_GESTURE)
+    //     {
             
-            //Logic that should happen when I click
-            if (currentInteractableCube)
-            {
-                currentInteractableCube.InteractWithCube();
-            }
-        }
+    //         //Logic that should happen when I click
+    //         if (currentInteractableCube)
+    //         {
+    //             currentInteractableCube.InteractWithCube();
+    //         }
+    //     }
 
-    }
+    // }
     // void DetectHandGestureWave()
     // {
 
@@ -181,74 +144,74 @@ public class Interactable : MonoBehaviour
 	/// <summary>
 	/// Handles the information from the processed frame in order to use the warning information to highlight the user position approaching to the edges.
 	/// </summary>
-	// void HandleManoMotionFrameUpdated()
-	// {
-	// 	Warning warning = ManomotionManager.Instance.Hand_infos[0].hand_info.warning;
+	void HandleManoMotionFrameUpdated()
+	{
+		Warning warning = ManomotionManager.Instance.Hand_infos[0].hand_info.warning;
 
-	// 	HighlightEdgeWarning(warning);
-	// }
+	 	HighlightEdgeWarning(warning);
+ }
 
 	/// <summary>
 	/// Visually illustrated the users hand approaching the edges of the screen
 	/// </summary>
 	// /// <param name="warning"></param>
-	// void HighlightEdgeWarning(Warning warning)
-	// {
-	// 	switch (warning)
-	// 	{
+	 void HighlightEdgeWarning(Warning warning)
+	 {
+	 	switch (warning)
+	 	{
 
-	// 		case Warning.WARNING_APPROACHING_LEFT_EDGE:
-    //             wave = true;
-	// 			break;
+	 		case Warning.WARNING_APPROACHING_LEFT_EDGE:
+                 wave = true;
+	 			break;
 
-	// 		case Warning.WARNING_APPROACHING_RIGHT_EDGE:
-    //             wave2 =true;
-	// 			break;
-	// 		case Warning.WARNING_APPROACHING_UPPER_EDGE:
-	// 			break;
+	 		case Warning.WARNING_APPROACHING_RIGHT_EDGE:
+                 wave2 =true;
+	 			break;
+	 		case Warning.WARNING_APPROACHING_UPPER_EDGE:
+	 			break;
 
 
-	// 		default:
-	// 			break;
-    //     }
-	// }
+	 		default:
+	 			break;
+         }
+	 }
 
-    void DetectHandGestureRelease()
-    {
+    // void DetectHandGestureRelease()
+    // {
 
-        //All the information of the hand
-        HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
+    //     //All the information of the hand
+    //     HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
 
-        //
-        if (detectedHand.gesture_info.mano_gesture_trigger == ManoGestureTrigger.RELEASE_GESTURE)
-        {
+    //     //
+    //     if (detectedHand.gesture_info.mano_gesture_trigger == ManoGestureTrigger.RELEASE_GESTURE)
+    //     {
             
-            //Logic that should happen when I click
-            if (currentInteractableCube)
-            {
-                currentInteractableCube.InteractWithCube();
-            }
-        }
+    //         //Logic that should happen when I click
+    //         if (currentInteractableCube)
+    //         {
+    //             currentInteractableCube.InteractWithCube();
+    //         }
+    //     }
 
-    }
+    // }
 
 
 
-    void DetectMouseClick()
-    {
+    // void DetectMouseClick()
+    // {
     
-        //The click happens when I release the left mouse buttons
-        if (Input.GetMouseButtonUp(0))
-        {
+    //     //The click happens when I release the left mouse buttons
+    //     if (Input.GetMouseButtonUp(0))
+    //     {
 
-            //Logic that should happen when I click.
+    //         //Logic that should happen when I click.
 
-            if (currentInteractableCube)
-            {
-                currentInteractableCube.InteractWithCube();
+    //         if (currentInteractableCube)
+    //         {
+    //             currentInteractableCube.InteractWithCube();
 
-            }
+    //         }
 
-        }
-    }
+    //     }
+    // }
 }

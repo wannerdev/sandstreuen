@@ -4,6 +4,10 @@ using UnityEngine;
 
 public static class Bodies
 {
+    //public const int sandDry= 34, sandWaStart=15, sandWaEnd=30,sandWet=45;
+    public enum types{SANDDRY, SANDWATERSTART, SANDWATEREND,SANDWET};
+    public static string[] sandname= {"sandDry", "sandWaterStart", "sandWaterEnd","sandWet"};
+    public static float[] sands= { 0.56f, 0.26f, 0.5f,0.7f};
 
     static public float sdConeShort(Vector3 p, Vector2 c, float h)
     {
@@ -34,7 +38,7 @@ public static class Bodies
 
     //Credit  iquilezles
     //https://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
-static public float sdConeExact(Vector3 p, Vector2 q)
+    static public float sdConeExact(Vector3 p, Vector2 q)
     {
         // c is the sin/cos of the angle, h is height
         // Alternatively pass q instead of (c,h),

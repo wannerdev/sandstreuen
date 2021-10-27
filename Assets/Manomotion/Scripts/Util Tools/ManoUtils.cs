@@ -230,7 +230,7 @@ public class ManoUtils : MonoBehaviour
 
     private void Start()
     {
-        currentOrientation = DeviceOrientation.Portrait;
+        currentOrientation = DeviceOrientation.LandscapeRight;
         if (OnOrientationChanged != null)
         {
             OnOrientationChanged();

@@ -8,15 +8,23 @@ public class PerspectivePan : MonoBehaviour {
     public Joystick moveJoystick;
     public Joystick rotateJoystick;
     public float groundZ = 0;
-    public float rotX=0, rotY=0, rotZ = 0;
+    public float rotX=0, rotY=0, rotZ = 0, rotW=0;
 
     void Start(){
          //Check if the device running this is a handheld
         if (SystemInfo.deviceType == DeviceType.Desktop)
         {
-            this.enabled = false;
+            FixedJoystick[] k = this.GetComponentsInChildren<FixedJoystick>();
+            if(k !=null){
+                // popUp1 = GameObject.FindWithTag (tagName);
+                Vector3 currentPosition = k[0].transform.localPosition;
+                k[0].transform.localPosition = new Vector3 (1000, 1000);
+                Vector3 currentPosition2 = k[1].transform.localPosition;
+                k[1].transform.localPosition = new Vector3 (1000, 1000);
+            }
             this.moveJoystick.enabled = false;
             this.rotateJoystick.enabled = false;
+            this.enabled = false;
         }else{
             
             this.enabled = true;
@@ -27,50 +35,55 @@ public class PerspectivePan : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
         Vector3 direction= new Vector3(0,0,0);
-
+        rotX=0; rotY=0; rotZ = 0; rotW=0;
         if (moveJoystick.Horizontal >= .2f)
         {
-            direction = new Vector3(0.1f, 0, 0);
+            direction = cam.transform.right;
+            // direction = new Vector3(0.1f, 0, 0);
         }
         else if (moveJoystick.Horizontal <= -.2f)
         {
-            direction = new Vector3(-0.1f, 0, 0);
+            direction = -cam.transform.right;
+            // direction = new Vector3(-0.1f, 0, 0);
         }
  
         float verticalMove = moveJoystick.Vertical;
  
         if (verticalMove >= .2f ) {
-            direction = new Vector3(0, 0, 0.1f);
+            direction = cam.transform.forward;//new Vector3(0, 0, 0.1f);
 
         }else if(verticalMove <= -.2f){
 
-            direction = new Vector3(0, 0,-0.1f);
+            direction = -cam.transform.forward;//new Vector3(0, 0,-0.1f);
         }
 
         //rotation
         if (rotateJoystick.Horizontal >= .2f)
         {
-            rotX += 0.0051f;
+            rotY += 1f;
         }
         else if (rotateJoystick.Horizontal <= -.2f)
         {
-            rotX += -0.0051f;
+            rotY += -1f;
         }
  
         verticalMove = rotateJoystick.Vertical;
  
         if (verticalMove >= .2f ) {
-            rotY += 0.0051f;
+            rotX += 1f;
 
         }else if(verticalMove <= -.2f){
 
-            rotY += -0.0051f;
+            rotX += -1f;
         }
-        Quaternion quaternion = new Quaternion(
-        cam.transform.rotation.x+ rotX,cam.transform.rotation.y+rotY,cam.transform.rotation.z+rotZ,
-        cam.transform.rotation.w);
+        direction = direction*0.3f;
+        //direction = cam.transform.TransformDirection(direction)*0.3f;
+         //cam.transform.Rotate(rotX,rotY,rotZ,Space.Self);
+        var rotate = new Vector3(transform.eulerAngles.x + rotX, transform.eulerAngles.y + rotY, 0);
+        transform.eulerAngles = rotate;
         cam.transform.position += direction;
-        cam.transform.rotation = quaternion;
+        // cam.transform.localRotation = Quaternion.Euler(rotX, rotY, 0);
+        //cam.transform.rotation = quaternion;
         // if (Input.GetMouseButtonDown(0)){
         //     touchStart = GetWorldPosition(groundZ);
         // }
@@ -79,6 +92,12 @@ public class PerspectivePan : MonoBehaviour {
         //     cam.transform.position += direction;
         // }
 
+
+        // Quaternion quaternion = new Quaternion(
+        //              rotX,
+        //              rotY,
+        //              rotZ,
+        //              cam.transform.rotation.w);
         
         // if (Input.GetMouseButtonDown(1)){
         //     touchStart2 = GetWorldPosition(groundZ);

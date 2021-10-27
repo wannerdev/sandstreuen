@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,7 +7,7 @@ using UnityEngine.UI;
 public class JWUIManager : MonoBehaviour
 {
     [SerializeField]
-    public Text ConeValueText, CameraValue; 
+    public Text ConeValueText, CameraValue,depth,warning,sand; 
     public GameObject generator;
     
     Camera cam;
@@ -31,5 +32,10 @@ public class JWUIManager : MonoBehaviour
         // CameraValue.text += " Z:"+cam.transform.position.z;//ToString();
         // CameraValue.text = "Y: "+GetComponent<DualContouring3D>().cones[size-1].bot[1];
         // CameraValue.text = "Z: "+GetComponent<DualContouring3D>().cones[size-1].bot[2];
+    }
+
+    internal void changeMaterial(int selected)
+    {
+        sand.text = Bodies.sandname[selected];
     }
 }

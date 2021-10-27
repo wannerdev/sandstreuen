@@ -9,20 +9,27 @@ public class Interactable : MonoBehaviour
     [SerializeField]
     InteractableCubeBehavior currentInteractableCube;
     // Text coordsValue;
-    public GameObject generator,uimanager;
+    public GameObject generator;
     public Camera cam;
     DualContouring3D d3D;
-    JWUIManager debugui;
+    public JWUIManager uimanager;
+    public int selected=0;
+    private bool wave;
+    private bool wave2;
+    private int flag=0;
+
     void start(){
-        d3D = generator.GetComponent<DualContouring3D>();
-        debugui = uimanager.GetComponent<JWUIManager>();
+        // d3D = generator.GetComponent<DualContouring3D>();
+        uimanager = uimanager.GetComponent<JWUIManager>();
+		// ManomotionManager.OnManoMotionFrameProcessed += HandleManoMotionFrameUpdated;
     }
     // Update is called once per frame
     void Update()
     {
         //DetectMouseClick();
-        //DetectHandGestureTap();
+        DetectHandGestureTap();
         DetectHandGestureClick();
+        // DetectHandGestureWave();
         //DetectHandGesturePinch();
         // DetectHandGestureRelease();
     }
@@ -54,6 +61,8 @@ public class Interactable : MonoBehaviour
         //All the information of the hand
         if(ManomotionManager.Instance != null){
             HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
+            //move to ui
+            uimanager.depth.text = "depth:"+detectedHand.tracking_info.depth_estimation+" ";
         
 
             //The click happens when I perform the Click Gesture : Open Pinch -> Closed Pinch -> Open Pinch 
@@ -76,23 +85,53 @@ public class Interactable : MonoBehaviour
                     //Vector3 place = cam.transform.position;
                     //place += Vector3.forward;
                     
+                    d3D = generator.GetComponent<DualContouring3D>();
                     //create by palm position 
                     Vector3 place = detectedHand.tracking_info.palm_center;
-                    place.z = detectedHand.tracking_info.depth_estimation*2;
-                    Vector3 hand = cam.ScreenToWorldPoint(place);
-
+                    // place.z = detectedHand.tracking_info.depth_estimation*9;
+                    //place = cam.transform.position+cam.ScreenToWorldPoint(place);//Adapt placing coords to orientation
+                    
+                    place = ManoUtils.Instance.CalculateWorldPosition(place,detectedHand.tracking_info.depth_estimation*10);
+                    
+                    //place += cam.transporm.position;
+                    // place = cam.transform.forward * detectedHand.tracking_info.depth_estimation*5;
                     float state = detectedHand.gesture_info.state; //needs probably a better variable
                     float angle = 0.5f;//+anglechange/10; *(state/12)
-                    float height = 5;
+                    float height = 1;
                     
                     
-                    debugui.ConeValueText.text = place.ToString();
-                    d3D.add_cone(place, height, angle);
-                    d3D.regenerateMesh();
+                    //todo move to uimanager
+                    uimanager.ConeValueText.text = place.ToString();
+                    
+                    if(d3D.add_cone(place, height, selected/10)){
+                        d3D.regenerateMesh();
+                    }else{
+                        uimanager.warning.text = "Outside of Area";
+                    }
+                    
                     
                 }
             }
         }
+
+    }
+
+
+    void DetectHandGestureTap()
+    {
+
+        //All the information of the hand
+        HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
+
+        if (detectedHand.gesture_info.mano_gesture_continuous == ManoGestureContinuous.POINTER_GESTURE)
+        {
+            // flag=1;
+            //Logic that should happen when I click
+           
+            selected +=1;
+            if (selected ==40)selected=0;
+            uimanager.changeMaterial(selected/10);
+        } 
 
     }
 
@@ -114,7 +153,65 @@ public class Interactable : MonoBehaviour
         }
 
     }
+    // void DetectHandGestureWave()
+    // {
 
+    //     //All the information of the hand
+    //     HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
+
+    //     //
+    //     if (detectedHand.gesture_info.mano_gesture_continuous == ManoGestureContinuous.OPEN_HAND_GESTURE)
+    //     {            
+    //         //Logic that should happen when I click
+    //         if (wave&&wave2)
+    //         {
+    //             selected +=1;
+    //             if (selected ==4)selected=0;
+    //             uimanager.changeMaterial(selected);
+    //             //improve timer based reset?
+    //             wave=false;
+    //             wave2=false;
+    //         }
+    //     }
+
+
+    // }
+
+
+	/// <summary>
+	/// Handles the information from the processed frame in order to use the warning information to highlight the user position approaching to the edges.
+	/// </summary>
+	// void HandleManoMotionFrameUpdated()
+	// {
+	// 	Warning warning = ManomotionManager.Instance.Hand_infos[0].hand_info.warning;
+
+	// 	HighlightEdgeWarning(warning);
+	// }
+
+	/// <summary>
+	/// Visually illustrated the users hand approaching the edges of the screen
+	/// </summary>
+	// /// <param name="warning"></param>
+	// void HighlightEdgeWarning(Warning warning)
+	// {
+	// 	switch (warning)
+	// 	{
+
+	// 		case Warning.WARNING_APPROACHING_LEFT_EDGE:
+    //             wave = true;
+	// 			break;
+
+	// 		case Warning.WARNING_APPROACHING_RIGHT_EDGE:
+    //             wave2 =true;
+	// 			break;
+	// 		case Warning.WARNING_APPROACHING_UPPER_EDGE:
+	// 			break;
+
+
+	// 		default:
+	// 			break;
+    //     }
+	// }
 
     void DetectHandGestureRelease()
     {
@@ -136,23 +233,6 @@ public class Interactable : MonoBehaviour
     }
 
 
-    void DetectHandGestureTap()
-    {
-
-        //All the information of the hand
-        HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
-
-        if (detectedHand.gesture_info.mano_gesture_trigger == ManoGestureTrigger.PICK)
-        {
-            
-            //Logic that should happen when I click
-            if (currentInteractableCube)
-            {
-                currentInteractableCube.InteractWithCube();
-            }
-        }
-
-    }
 
     void DetectMouseClick()
     {
@@ -170,12 +250,5 @@ public class Interactable : MonoBehaviour
             }
 
         }
-    }
-
-    //TODO Code Challenge: Use a smart & creative way to decide which object should be the currentInteractableCube.
-    //TODO email abraham@manomotion.com with your ideas and code snipets :) 
-    void FindWhichCubeShouldBetheCurrentInteractable()
-    {
-     //gizmo raycast   
     }
 }

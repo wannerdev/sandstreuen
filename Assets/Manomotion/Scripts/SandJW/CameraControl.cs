@@ -24,6 +24,10 @@ public class CameraControl : MonoBehaviour
 
     public GameObject generator;
     private Camera cam;
+
+    public  JWUIManager uimanager ;
+    private int selected=0;
+
     private void Start()
     {
         //Check if the device running this is a handheld
@@ -31,8 +35,13 @@ public class CameraControl : MonoBehaviour
         {
             this.enabled = false;
         }
+        // GameObject[] unused = GameObject.FindGameObjectsWithTag("desktop");
+        // foreach(GameObject u in unused ){
+        //     u.gameObject.SetActive(false);
+        // }
         lastMouse = Input.mousePosition;
         this.cam = this.GetComponent<Camera>();
+        uimanager = uimanager.GetComponent<JWUIManager>();
     }
     void Update()
     {
@@ -44,10 +53,21 @@ public class CameraControl : MonoBehaviour
             //DualContouring3D g = gameObject.AddComponent<DualContouring3D>();
             place += cam.transform.forward;
             DualContouring3D d3D = generator.GetComponent<DualContouring3D>();
-            d3D.add_cone(place, 5, 0.5f);
-            d3D.regenerateMesh();
+            if(d3D.add_cone(place, 5, selected)){
+                // d3D.regenerateMesh();
+                uimanager.warning.text = "";
+            }else{
+                //uimanager //.GetComponent<JWUIManager>();
+                uimanager.warning.text = "Outside of Area";
+            }
+        }
+        if (Input.GetMouseButton(1)){
+            selected +=1;
+            if (selected ==4)selected=0;
+            uimanager.changeMaterial(selected);
         }
 
+        //Move cones old object oriented way
         // for(int i=0; i < generator.GetComponent<DualContouring3D>().cones.Count;i++){
         //     if (Input.GetKey(KeyCode.LeftArrow))
         //     {

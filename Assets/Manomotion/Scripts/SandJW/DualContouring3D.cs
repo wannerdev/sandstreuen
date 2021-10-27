@@ -224,7 +224,9 @@ public class DualContouring3D : MonoBehaviour
     {
         if (notAdaptive)
         {
-            return new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
+            Vector3 vert =  new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
+            vert.Scale(new Vector3(0.1f,0.1f,0.1f));
+            return vert;
         }
         Vector3 vec = new Vector3(x, y, z);
         float[,,] edges = new float[2, 2, 2];
@@ -415,9 +417,9 @@ public class DualContouring3D : MonoBehaviour
 
     public bool add_single(Vector3 coord, int material){
         if(checkBounds(coord)){
-            coord.x +=Math.Abs(offset.x);
-            coord.y +=Math.Abs(offset.y);
-            coord.z +=Math.Abs(offset.z);
+            coord.x +=Math.Abs(offset.x/10);
+            coord.y +=Math.Abs(offset.y/10);
+            coord.z +=Math.Abs(offset.z/10);
             grid[Math.Abs((int)coord.x), Math.Abs((int)coord.y) , Math.Abs((int)coord.z)]=true;
             return true;
         }
@@ -437,7 +439,7 @@ public class DualContouring3D : MonoBehaviour
             {
                 for (int z = 0; z <= areaSize; z++){
                     //Vector3 position = new Vector3(x-coord.x,y-coord.y ,z-coord.z);
-                    Vector3 position = new Vector3(x-coord.x,y-coord.y ,z-coord.z);
+                    Vector3 position = new Vector3(x-coord.x/10,y-coord.y/10 ,z-coord.z/10);
                     position += offset;
                     if( sdConeExact(position, angle, height) < 1) {//to test 0.5
                         grid[x,y,z]=true;

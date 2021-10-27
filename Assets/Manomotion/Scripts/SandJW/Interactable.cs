@@ -14,9 +14,11 @@ public class Interactable : MonoBehaviour
     private bool wave;
     private bool wave2;
     private int flag=0;
+    private float rotX,rotY,rotZ;
 
     void start(){
         selected =((int)sandManager.coneAngle)*10;
+        rotX=0; rotY=0; rotZ = 0;
         
         uimanager = uimanager.GetComponent<JWUIManager>();
 		// ManomotionManager.OnManoMotionFrameProcessed += HandleManoMotionFrameUpdated;
@@ -27,12 +29,21 @@ public class Interactable : MonoBehaviour
         //DetectMouseClick();
         DetectHandGestureTap();
         DetectHandGestureClick();
-        // DetectHandGestureWave();
+        DetectHandGestureGrab();
+        //DetectHandGestureWave();
         //DetectHandGesturePinch();
-        // DetectHandGestureRelease();
+        //DetectHandGestureRelease();
+        rotate();
     }
 
 
+    void rotate(){
+        //rotation            
+        var rotate = new Vector3(transform.eulerAngles.x + rotX, transform.eulerAngles.y + rotY, 0);
+        transform.eulerAngles = rotate;
+        rotX=0; rotY=0; rotZ = 0;
+                
+    }
     void DetectHandGestureClick()
     {
 
@@ -60,8 +71,8 @@ public class Interactable : MonoBehaviour
                 //Vector3 place = cam.transform.position;
                 //place += Vector3.forward;
                 
-                //create by palm position 
-                Vector3 place = detectedHand.tracking_info.palm_center;
+                //create by position of interest
+                Vector3 place = detectedHand.tracking_info.poi;
                 // place.z = detectedHand.tracking_info.depth_estimation*9;
                 //place = cam.transform.position+cam.ScreenToWorldPoint(place);//Adapt placing coords to orientation
                 
@@ -83,39 +94,39 @@ public class Interactable : MonoBehaviour
     void DetectHandGestureTap()
     {
 
-        //All the information of the hand
-        HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
+        if(ManomotionManager.Instance != null){
+            //All the information of the hand
+            HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
 
-        if (detectedHand.gesture_info.mano_gesture_continuous == ManoGestureContinuous.POINTER_GESTURE)
-        {
-            // flag=1;
-            //Logic that should happen when I click
-           
-            selected +=1;
-            if (selected ==40)selected=0;
-            uimanager.changeMaterial(selected/10);
-        } 
+            if (detectedHand.gesture_info.mano_gesture_continuous == ManoGestureContinuous.POINTER_GESTURE)
+            {
+                // flag=1;
+                //Logic that should happen when I click
+            
+                selected +=1;
+                if (selected ==40)selected=0;
+                uimanager.changeMaterial(selected/10);
+            } 
+        }
 
     }
 
-    // void DetectHandGesturePinch()
-    // {
+     void DetectHandGestureGrab()
+     {
 
-    //     //All the information of the hand
-    //     HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
+        if(ManomotionManager.Instance != null){
+            //All the information of the hand
+            HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
 
-    //     //mi one
-    //     if (detectedHand.gesture_info.mano_gesture_trigger == ManoGestureTrigger.GRAB_GESTURE)
-    //     {
-            
-    //         //Logic that should happen when I click
-    //         if (currentInteractableCube)
-    //         {
-    //             currentInteractableCube.InteractWithCube();
-    //         }
-    //     }
 
-    // }
+            if (detectedHand.gesture_info.mano_gesture_trigger == ManoGestureTrigger.GRAB_GESTURE)
+            {
+                 sandManager.changeMode();
+            }
+        }
+
+     }
+
     // void DetectHandGestureWave()
     // {
 
@@ -161,10 +172,12 @@ public class Interactable : MonoBehaviour
 	 	{
 
 	 		case Warning.WARNING_APPROACHING_LEFT_EDGE:
+                rotX += 1f;
                  wave = true;
 	 			break;
 
 	 		case Warning.WARNING_APPROACHING_RIGHT_EDGE:
+                rotX -= 1f;
                  wave2 =true;
 	 			break;
 	 		case Warning.WARNING_APPROACHING_UPPER_EDGE:
@@ -176,24 +189,19 @@ public class Interactable : MonoBehaviour
          }
 	 }
 
-    // void DetectHandGestureRelease()
-    // {
+    //  void DetectHandGestureRelease()
+    //  {
 
-    //     //All the information of the hand
-    //     HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
+    //      //All the information of the hand
+    //      HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
 
-    //     //
-    //     if (detectedHand.gesture_info.mano_gesture_trigger == ManoGestureTrigger.RELEASE_GESTURE)
-    //     {
+    // //     //
+    //      if (detectedHand.gesture_info.mano_gesture_trigger == ManoGestureTrigger.RELEASE_GESTURE)
+    //      {
             
-    //         //Logic that should happen when I click
-    //         if (currentInteractableCube)
-    //         {
-    //             currentInteractableCube.InteractWithCube();
-    //         }
-    //     }
-
-    // }
+          
+    //      }
+    //  }
 
 
 

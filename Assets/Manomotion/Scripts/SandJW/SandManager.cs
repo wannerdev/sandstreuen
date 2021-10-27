@@ -51,6 +51,10 @@ public class SandManager : MonoBehaviour
         this.modeVal = mode;
         uimanager.changeMode(mode);
     }
+    public void changeMode(){
+        this.modeVal = modeVal=="single"? "cone":"single";
+        uimanager.changeMode(modeVal);
+    }
     public void changeMaterial(int selected){
         uimanager.changeMaterial(selected);
     }

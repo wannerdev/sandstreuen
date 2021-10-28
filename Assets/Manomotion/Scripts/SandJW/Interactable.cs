@@ -71,9 +71,9 @@ public class Interactable : MonoBehaviour
                 // place = cam.transform.forward * detectedHand.tracking_info.depth_estimation*5;
                 float state = detectedHand.gesture_info.state; //needs probably a better variable
                 float angle = 0.5f;//+anglechange/10; *(state/12)
-                float height = 1;
+                float height = 3;
                 //divide by 10 to switch slow
-                sandManager.add(place,height,selected/10);          
+                sandManager.add(place,selected/10,height);          
             }
         }
 
@@ -82,19 +82,21 @@ public class Interactable : MonoBehaviour
 
     void DetectHandGestureTap()
     {
+        if(ManomotionManager.Instance != null){
 
-        //All the information of the hand
-        HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
+            //All the information of the hand
+            HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
 
-        if (detectedHand.gesture_info.mano_gesture_continuous == ManoGestureContinuous.POINTER_GESTURE)
-        {
-            // flag=1;
-            //Logic that should happen when I click
-           
-            selected +=1;
-            if (selected ==40)selected=0;
-            uimanager.changeMaterial(selected/10);
-        } 
+            if (detectedHand.gesture_info.mano_gesture_continuous == ManoGestureContinuous.POINTER_GESTURE)
+            {
+                // flag=1;
+                //Logic that should happen when I click
+            
+                selected +=1;
+                if (selected ==40)selected=0;
+                uimanager.changeMaterial(selected/10);
+            }
+        }
 
     }
 

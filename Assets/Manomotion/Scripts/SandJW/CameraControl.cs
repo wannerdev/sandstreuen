@@ -46,7 +46,7 @@ public class CameraControl : MonoBehaviour
         if (Input.GetMouseButton(0)){
             Vector3 place = cam.transform.position;
             place += cam.transform.forward;
-            sandManager.add(place, 5, selected);
+            sandManager.add(place, selected);
         }
         if (Input.GetMouseButton(1)){
             selected +=1;

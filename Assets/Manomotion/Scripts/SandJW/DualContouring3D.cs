@@ -9,9 +9,10 @@ public class DualContouring3D : MonoBehaviour
 {
     //settings
     public Material material;
-    public int areaSize = 20;
-    public bool notAdaptive = true;
-    public float floor=1;
+    public int areaSize; //80
+    public bool notAdaptive; //true
+    public float floor; //-1
+    public float scale; //0.1f
 
 
     internal Vector3[,,] vertexe;
@@ -19,9 +20,11 @@ public class DualContouring3D : MonoBehaviour
     internal List<Vector3> verticies;
     internal List<int> indicies;
 
+    //Offset to World coordinates
+    private Vector3 offset;
     public bool[,,] grid;
-    internal float[,,] sdfgrid;
-    public Vector3 offset;
+    // internal float[,,] sdfgrid;
+
 
     internal Mesh mesh;
     internal MeshFilter filter;
@@ -51,6 +54,16 @@ public class DualContouring3D : MonoBehaviour
         
         //generated space
         grid = new bool [areaSize +2, areaSize+2 , areaSize+2 ];
+        
+        for (int x = 0; x <= areaSize+1; x++)
+        {
+            for (int y = 0; y <= areaSize+1; y++)
+            {
+                for (int z = 0; z <= areaSize+1; z++){
+                    grid[x,y,z] = perlinNoise3D(x,y,z) < 0.5;
+                }
+            }
+        }
         //sdfgrid = new float [areaSize +2, areaSize+2 , areaSize+2 ];
         
         //Surface Quads
@@ -225,9 +238,17 @@ public class DualContouring3D : MonoBehaviour
         if (notAdaptive)
         {
             Vector3 vert =  new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
-            vert.Scale(new Vector3(0.1f,0.1f,0.1f));
+            vert.Scale(new Vector3(scale,scale,scale));
+
+            //Make vertex coordinates world coordinates
+            if(scale < 1){
+                vert -= offset; //add Offset since its negative
+            }else if(scale > 1){
+                vert += offset; 
+            }
+            //if scale 1 do nothing
             return vert;
-        }
+        }else{
         Vector3 vec = new Vector3(x, y, z);
         float[,,] edges = new float[2, 2, 2];
         for (int j = 0; j < 2; j++)
@@ -330,6 +351,7 @@ public class DualContouring3D : MonoBehaviour
         }
 
         return c;
+        }
         //b ist b = [v[0] * n[0] + v[1] * n[1] + v[2] * n[2] for v, n in zip(positions, normals)]
         //a
         //Q.Qef solver = new Qef(); 
@@ -403,6 +425,7 @@ public class DualContouring3D : MonoBehaviour
     {
         //check cones add floor again or generate noise
         // if(notAdaptive){
+            // return Mathf.PerlinNoise(x,y) < 0.5;//test area
             return grid[x,y,z];
         // }else{
         //     if( sdConeExact(new Vector3(x,y,z), new Vector2(0.5f, 0.5f), 5) < 0 ){
@@ -416,11 +439,12 @@ public class DualContouring3D : MonoBehaviour
     }
 
     public bool add_single(Vector3 coord, int material){
-        if(checkBounds(coord)){
-            coord.x +=Math.Abs(offset.x/10);
-            coord.y +=Math.Abs(offset.y/10);
-            coord.z +=Math.Abs(offset.z/10);
-            grid[Math.Abs((int)coord.x), Math.Abs((int)coord.y) , Math.Abs((int)coord.z)]=true;
+        //adjust to scale
+        coord.x /=scale;
+        coord.y /=scale;
+        coord.z /=scale;
+        if(checkIndexBounds(coord)){
+            grid[(int)coord.x, (int)coord.y , (int)coord.z]=true;
             return true;
         }
         return false;
@@ -430,19 +454,41 @@ public class DualContouring3D : MonoBehaviour
     {
         float aperture = Bodies.sands[material];
         Debug.Log("executed at " + coord.ToString());
-        if(!checkBounds(coord)) return false;
+        if(!checkPosBounds(coord)) return false;
         Vector2 angle = new Vector2((float)Math.Sin(aperture),(float) Math.Cos(aperture));
         bool success = true;
-        for (int x = 0; x <= areaSize; x++) 
+        for (float x = 0; x <= areaSize; x=x+scale) 
         {
-            for (int y = 0; y <= areaSize; y++)
+            for (float y = 0; y <= height+coord.y; y=y+scale)
             {
-                for (int z = 0; z <= areaSize; z++){
-                    //Vector3 position = new Vector3(x-coord.x,y-coord.y ,z-coord.z);
-                    Vector3 position = new Vector3(x-coord.x/10,y-coord.y/10 ,z-coord.z/10);
+                for (float z = 0; z <= areaSize; z=z+scale){
+                    //reduces to near 0,0,0
+                    //Vector3 position = new Vector3((x-coord.x/scale,(y-coord.y)/scale ,(z-coord.z)/scale);
+                    Vector3 position = new Vector3(x-coord.x,y-coord.y ,z-coord.z);
+                    
+                    // float sx = (x*scale);s
+                    // float sy = (y*scale);
+                    // float sz = (z*scale);
+                    // Vector3 position = new Vector3(sx-coord.x,sy-coord.y ,sz-coord.z);
+                    //Cone Exact is always at zero so remove added offset
                     position += offset;
                     if( sdConeExact(position, angle, height) < 1) {//to test 0.5
-                        grid[x,y,z]=true;
+                        Vector3 index = new Vector3(x,y,z);
+                        // Debug.Log("in Cone at " + index.ToString());
+                        // i don't want to scale offset
+                        index += offset;
+                        index.x /=scale;
+                        index.y /=scale;
+                        index.z /=scale;
+                        index -= offset;
+
+                        // index.x +=Math.Abs(offset.x*scale);
+                        // index.y +=Math.Abs(offset.y*scale);
+                        // index.z +=Math.Abs(offset.z*scale);
+                        if(checkIndexBounds(index) ) {
+                            grid[(int)(index.x),(int)(index.y), (int)(index.z)] =true;
+                        }
+                        
                     }
                 }
             }
@@ -452,9 +498,19 @@ public class DualContouring3D : MonoBehaviour
         // flag=0;
     }
 
-    private bool checkBounds(Vector3 coord){
+    private bool checkPosBounds(Vector3 coord){
         if(coord.x >(areaSize/2) || coord.y > (areaSize/2) || coord.z >(areaSize/2) ||
            coord.x <(-areaSize/2) || coord.y < (-areaSize/2) || coord.z <(-areaSize/2) ){
+            Debug.Log("Pos out of bounds");
+            return false; //out of bounds
+        }
+        return true;
+    }
+
+    private bool checkIndexBounds(Vector3 coord){
+        if(coord.x >(areaSize) || coord.y > (areaSize) || coord.z >(areaSize) ||
+          (coord.x <0 || coord.y < 0) || coord.z <0 ) {
+            Debug.Log("Index out of bounds");
             return false; //out of bounds
         }
         return true;
@@ -467,7 +523,8 @@ public class DualContouring3D : MonoBehaviour
     // Update is called once per frame
      void Update()
      {
-        regenerateMesh();       
+        regenerateMesh();
+        // gravity();       
      }
 
     //optimize by dynamically adapt areasize to be changed by creating a cone
@@ -650,7 +707,6 @@ public class DualContouring3D : MonoBehaviour
 
         mesh.RecalculateNormals();
         mesh.RecalculateTangents();
-        gravity();
 
     }
 }

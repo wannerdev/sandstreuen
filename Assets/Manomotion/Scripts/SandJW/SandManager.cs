@@ -21,7 +21,7 @@ public class SandManager : MonoBehaviour
         d3D = d3D.GetComponent<DualContouring3D>();
     }
 
-    public void add(Vector3 place, float height, int selected )
+    public void add(Vector3 place,  int selected,float height=3 )
     {
         if( modeVal == "cone"){
             if(d3D.add_cone(place, height, selected)){
@@ -36,9 +36,9 @@ public class SandManager : MonoBehaviour
                 d3D.regenerateMesh();
                 uimanager.resetWarning();
                 
-                place.x +=Math.Abs(d3D.offset.x);
-                place.y +=Math.Abs(d3D.offset.y);
-                place.z +=Math.Abs(d3D.offset.z);
+                // place.x +=Math.Abs(d3D.offset.x);
+                // place.y +=Math.Abs(d3D.offset.y);
+                // place.z +=Math.Abs(d3D.offset.z);
                 uimanager.conePosition(place);
             }else{
                 uimanager.warnOutside();

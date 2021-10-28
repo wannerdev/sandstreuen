@@ -56,7 +56,23 @@ public static class Bodies
         return (float)(Math.Sqrt(d) * Math.Sign(s));
     }
 
-
+    //Credit https://answers.unity.com/questions/938178/3d-perlin-noise.html
+    public static float perlinNoise3D(float x, float y, float z)
+    {
+        y += 1;
+        z += 2;
+        float xy = perlin3DFixed(x, y);
+        float xz = perlin3DFixed(x, z);
+        float yz = perlin3DFixed(y, z);
+        float yx = perlin3DFixed(y, x);
+        float zx = perlin3DFixed(z, x);
+        float zy = perlin3DFixed(z, y);
+        return xy * xz * yz * yx * zx * zy;
+    }
+    static float perlin3DFixed(float a, float b)
+    {
+        return Mathf.Sin(Mathf.PI * Mathf.PerlinNoise(a, b));
+    }
 
     /** Credit @https://stackoverflow.com/questions/10768142/verify-if-point-is-inside-a-cone-in-3d-space
     * @param x coordinates of point to be tested 

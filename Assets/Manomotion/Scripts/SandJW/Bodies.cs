@@ -59,15 +59,14 @@ public static class Bodies
     //Credit https://answers.unity.com/questions/938178/3d-perlin-noise.html
     public static float perlinNoise3D(float x, float y, float z)
     {
-        y += 1;
-        z += 2;
-        float xy = perlin3DFixed(x, y);
-        float xz = perlin3DFixed(x, z);
-        float yz = perlin3DFixed(y, z);
-        float yx = perlin3DFixed(y, x);
-        float zx = perlin3DFixed(z, x);
-        float zy = perlin3DFixed(z, y);
-        return xy * xz * yz * yx * zx * zy;
+     float xy = Mathf.PerlinNoise(x, y);
+     float xz = Mathf.PerlinNoise(x, z);
+     float yz = Mathf.PerlinNoise(y, z);
+     float yx = Mathf.PerlinNoise(y, x);
+     float zx = Mathf.PerlinNoise(z, x);
+     float zy = Mathf.PerlinNoise(z, y);
+ 
+     return (xy + xz + yz + yx + zx + zy) / 6;
     }
     static float perlin3DFixed(float a, float b)
     {

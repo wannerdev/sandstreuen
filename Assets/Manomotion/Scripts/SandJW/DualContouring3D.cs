@@ -12,7 +12,9 @@ public class DualContouring3D : MonoBehaviour
     public int areaSize; //80
     public bool notAdaptive; //true
     public float floor; //-1
-    public float scale; //0.1f
+    public float scale; //1
+    public bool isGravity; //true
+    public bool someNoise; //false not really functional
 
 
     internal Vector3[,,] vertexe;
@@ -23,7 +25,7 @@ public class DualContouring3D : MonoBehaviour
     //Offset to World coordinates
     private Vector3 offset;
     public bool[,,] grid;
-    // internal float[,,] sdfgrid;
+    //  internal float[,,] sdfgrid;
 
 
     internal Mesh mesh;
@@ -32,6 +34,7 @@ public class DualContouring3D : MonoBehaviour
 
     //debug
     private int flag=0;
+
     //regarding schmitz adaptivity
     private readonly int MaxParticleIterations=50;
 
@@ -54,13 +57,16 @@ public class DualContouring3D : MonoBehaviour
         
         //generated space
         grid = new bool [areaSize +2, areaSize+2 , areaSize+2 ];
+        // sdfgrid = new float [areaSize +2, areaSize+2 , areaSize+2 ];
         
-        for (int x = 0; x <= areaSize+1; x++)
-        {
-            for (int y = 0; y <= areaSize+1; y++)
+        if(someNoise){
+            for (int x = 0; x <= areaSize+1; x++)
             {
-                for (int z = 0; z <= areaSize+1; z++){
-                    grid[x,y,z] = perlinNoise3D(x,y,z) < 0.5;
+                for (int y = 0; y <= areaSize+1; y++)
+                {
+                    for (int z = 0; z <= areaSize+1; z++){
+                        grid[x,y,z] = perlinNoise3D(x+areaSize+0.342352f ,y+areaSize+0.9672f,z+areaSize+0.1352f) >0.5;
+                    }
                 }
             }
         }
@@ -524,7 +530,9 @@ public class DualContouring3D : MonoBehaviour
      void Update()
      {
         regenerateMesh();
-        // gravity();       
+        if(isGravity){
+            gravity(); 
+        }      
      }
 
     //optimize by dynamically adapt areasize to be changed by creating a cone
@@ -553,7 +561,7 @@ public class DualContouring3D : MonoBehaviour
 
                             grid[x,y,z] = false;
                             grid[x,y-1,z+1] =true;
-                        }else if(z !=0 && !grid[x-1,y-1,z-1]){
+                        }else if(x!=0&& z !=0 && !grid[x-1,y-1,z-1]){
 
                             grid[x,y,z] = false;
                             grid[x,y-1,z-1] =true;

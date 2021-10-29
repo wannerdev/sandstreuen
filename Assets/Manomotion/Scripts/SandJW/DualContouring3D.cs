@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Qef;
 using static Bodies;
 
 public class DualContouring3D : MonoBehaviour
@@ -13,13 +12,19 @@ public class DualContouring3D : MonoBehaviour
     public bool notAdaptive = true;
     public float floor=1;
 
+    //Default cone  
+    static Vector2 defAngle =new Vector2(0.5f,0.5f);
+    const float  defHeight = 10;
 
-    internal Vector3[,,] vertexe;
+    //grid to generate quads by
+    internal Vector3[,,] vertexGrid;
     //Quads
     internal List<Vector3> vertices;
     internal List<int> indicies;
 
     //public bool[,,] grid;
+    //sdf = new float[areaSize*x*areaSize*y*areaSize*z]; //??
+    //in the future maybe use onedimensional array - compiler heavily optimized for one dimension
     internal float[,,] sdfgrid;
     public Vector3 offset;
 
@@ -31,7 +36,7 @@ public class DualContouring3D : MonoBehaviour
     private int flag=0;
     //regarding schmitz adaptivity
     private readonly int MaxParticleIterations=50;
-        float threshold = 0.001f;
+    float threshold = 0.001f;
 
     // Start is called before the first frame update
     void Start()
@@ -43,24 +48,21 @@ public class DualContouring3D : MonoBehaviour
 
         meshRenderer = gameObject.GetComponent<MeshRenderer>();
         meshRenderer.material = material;
-
         //inits
         mesh = new Mesh();
-
-        //
-        vertexe = new Vector3[areaSize + 1, areaSize + 1, areaSize + 1];
         
-        //generated space
-        //grid = new bool [areaSize +2, areaSize+2 , areaSize+2 ];
+        vertexGrid = new Vector3[areaSize + 1, areaSize + 1, areaSize + 1];
+
+        //generated SDF space
         sdfgrid = new float [areaSize +2, areaSize+2 , areaSize+2 ];
         Vector3 pos;
         for ( int i = 0; i < (areaSize +2);i++ ) {
             for ( int j = 0; j < (areaSize +2);j++ ) {
                 for ( int k = 0; k <(areaSize +2);k++ ) {
                     pos = new Vector3(i,j,k);
-                    pos.y +=-10;
+                    pos.y +=-8;
                     pos += offset;
-                    sdfgrid[i,j,k] = sdConeExact(pos,new Vector2(0.5f,0.5f),10);
+                    sdfgrid[i,j,k] = sdConeExact(pos,defAngle,defHeight);
                     // Debug.Log(sdfgrid[i,j,k]);
                     // Mathf.PerlinNoise(i/10+0.32342f+areaSize,j+0.568f+areaSize);//float.MaxValue;
                 }
@@ -70,23 +72,11 @@ public class DualContouring3D : MonoBehaviour
         indicies = new List<int>();
         this.vertices = new List<Vector3>();
 
-        //sdf = new float[areaSize*areaSize*areaSize*3];
-        //sdf = new float[areaSize*x*areaSize*y*areaSize*z]; //??
-        //in the future maybe use onedimensional array with the float values instead of boolean
 
 
         filter = gameObject.AddComponent<MeshFilter>();
-        // var mesh2 = new Mesh();
-        // var adaptedV = new List<Vector3>();
 
-        // var faces = new List<Vector3>();
-
-        //Generate vertexes
-        generateVertexes();
-        //test gridsdf
-        // if(!add_cone(new Vector3(0,0,0),10,0)){
-        //     Debug.Log("Err");
-        // };
+        generateVertices(defAngle,defHeight);
 
         // If one point is inside and not all points are inside place vertex -
         // another way to phrase it is just show the edges where a sign switch happens
@@ -106,27 +96,27 @@ public class DualContouring3D : MonoBehaviour
                         {
                             if (!solid2)
                             {
-                                vertices.Add(vertexe[x - 1, y - 1, z]);
+                                vertices.Add(vertexGrid[x - 1, y - 1, z]);
                                 indicies.Add(vertices.Count - 1);
 
-                                vertices.Add(vertexe[x - 0, y - 1, z]);
+                                vertices.Add(vertexGrid[x - 0, y - 1, z]);
                                 indicies.Add(vertices.Count - 1);
 
-                                vertices.Add(vertexe[x, y, z]);
+                                vertices.Add(vertexGrid[x, y, z]);
                                 indicies.Add(vertices.Count - 1);
 
-                                vertices.Add(vertexe[x - 1, y, z]);
+                                vertices.Add(vertexGrid[x - 1, y, z]);
                                 indicies.Add(vertices.Count - 1);
                             }
                             else
                             {
-                                vertices.Add(vertexe[x - 1, y, z]);
+                                vertices.Add(vertexGrid[x - 1, y, z]);
                                 indicies.Add(vertices.Count - 1);
-                                vertices.Add(vertexe[x, y, z]);
+                                vertices.Add(vertexGrid[x, y, z]);
                                 indicies.Add(vertices.Count - 1);
-                                vertices.Add(vertexe[x - 0, y - 1, z]);
+                                vertices.Add(vertexGrid[x - 0, y - 1, z]);
                                 indicies.Add(vertices.Count - 1);
-                                vertices.Add(vertexe[x - 1, y - 1, z]);
+                                vertices.Add(vertexGrid[x - 1, y - 1, z]);
                                 indicies.Add(vertices.Count - 1);
 
                             }
@@ -143,28 +133,28 @@ public class DualContouring3D : MonoBehaviour
                         {
                             if (solid2)
                             {
-                                vertices.Add(vertexe[x - 1, y, z - 1]);
+                                vertices.Add(vertexGrid[x - 1, y, z - 1]);
                                 indicies.Add(vertices.Count - 1);
 
-                                vertices.Add(vertexe[x, y, z - 1]);
+                                vertices.Add(vertexGrid[x, y, z - 1]);
                                 indicies.Add(vertices.Count - 1);
 
-                                vertices.Add(vertexe[x, y, z]);
+                                vertices.Add(vertexGrid[x, y, z]);
                                 indicies.Add(vertices.Count - 1);
 
-                                vertices.Add(vertexe[x - 1, y, z]);
+                                vertices.Add(vertexGrid[x - 1, y, z]);
                                 indicies.Add(vertices.Count - 1);
                             }
                             else
                             {
 
-                                vertices.Add(vertexe[x - 1, y, z]);
+                                vertices.Add(vertexGrid[x - 1, y, z]);
                                 indicies.Add(vertices.Count - 1);
-                                vertices.Add(vertexe[x, y, z]);
+                                vertices.Add(vertexGrid[x, y, z]);
                                 indicies.Add(vertices.Count - 1);
-                                vertices.Add(vertexe[x, y, z - 1]);
+                                vertices.Add(vertexGrid[x, y, z - 1]);
                                 indicies.Add(vertices.Count - 1);
-                                vertices.Add(vertexe[x - 1, y, z - 1]);
+                                vertices.Add(vertexGrid[x - 1, y, z - 1]);
                                 indicies.Add(vertices.Count - 1);
                             }
                         }
@@ -180,28 +170,28 @@ public class DualContouring3D : MonoBehaviour
                         {
                             if (!solid2)
                             {
-                                vertices.Add(vertexe[x, y - 1, z - 1]);
+                                vertices.Add(vertexGrid[x, y - 1, z - 1]);
                                 indicies.Add(vertices.Count - 1);
 
-                                vertices.Add(vertexe[x, y, z - 1]);
+                                vertices.Add(vertexGrid[x, y, z - 1]);
                                 indicies.Add(vertices.Count - 1);
 
-                                vertices.Add(vertexe[x, y, z]);
+                                vertices.Add(vertexGrid[x, y, z]);
                                 indicies.Add(vertices.Count - 1);
 
-                                vertices.Add(vertexe[x, y - 1, z]);
+                                vertices.Add(vertexGrid[x, y - 1, z]);
                                 indicies.Add(vertices.Count - 1);
                             }
                             else
                             {
 
-                                vertices.Add(vertexe[x, y - 1, z]);
+                                vertices.Add(vertexGrid[x, y - 1, z]);
                                 indicies.Add(vertices.Count - 1);
-                                vertices.Add(vertexe[x, y, z]);
+                                vertices.Add(vertexGrid[x, y, z]);
                                 indicies.Add(vertices.Count - 1);
-                                vertices.Add(vertexe[x, y, z - 1]);
+                                vertices.Add(vertexGrid[x, y, z - 1]);
                                 indicies.Add(vertices.Count - 1);
-                                vertices.Add(vertexe[x, y - 1, z - 1]);
+                                vertices.Add(vertexGrid[x, y - 1, z - 1]);
                                 indicies.Add(vertices.Count - 1);
                             }
                         }
@@ -210,20 +200,17 @@ public class DualContouring3D : MonoBehaviour
             }
         }
         
-        // Vector3[] vertices = mesh.vertices;
         mesh.vertices = vertices.ToArray();
         mesh.SetIndices(indicies.ToArray(), MeshTopology.Quads, 0);
 
 
-        
-		// mesh.vertices = this.vertices;
         filter.mesh = mesh;
         
         mesh.RecalculateNormals();
         mesh.RecalculateTangents();
     }
 
-    private void generateVertexes()
+    private void generateVertices(Vector2 angle,float height)
     {
          for (int x = 0; x <= areaSize; x++)
         {
@@ -231,29 +218,29 @@ public class DualContouring3D : MonoBehaviour
             {
                 for (int z = 0; z <= areaSize; z++)
                 {
-                    Vector3 vertex = find_vertex(x, y, z, new Vector3(0, 0, 0));
+                    Vector3 vertex = find_vertex(x, y, z, angle, height);
                     if (vertex == Vector3.negativeInfinity)
                     {
                         continue;
                     }
-                    vertexe[x, y, z] = vertex;
+                    vertexGrid[x, y, z] = vertex;
                     //add indicies?
                 }
             }
         }
     }
 
-    private Vector3 find_vertex(float x, float y, float z, Vector3 normal)
+    private Vector3 find_vertex(float x, float y, float z, Vector2 angle, float height)
     {
-        threshold*= threshold;
         if (notAdaptive)
         {
             return new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
         }
+        threshold*= threshold;
         Vector3 vec = new Vector3(x, y, z);
         float[,,] edges = new float[2, 2, 2];
 
-        Vector3 pos;
+        // Vector3 pos;
         for (int j = 0; j < 2; j++)
         {
             for (int k = 0; k < 2; k++)
@@ -311,7 +298,7 @@ public class DualContouring3D : MonoBehaviour
 
         var normals = new List<Vector3>();
         foreach (Vector3 v in changes ){
-            normals.Add(normal_from_Cone(v[0], v[1],v[2]));
+            normals.Add(normal_from_Cone(v[0], v[1],v[2],angle,height));
             // Vector3 n = normal_from_Ball(v[0], v[1],v[2]);
             // normals.Add(n.x);
             // normals.Add(n.y);
@@ -353,34 +340,12 @@ public class DualContouring3D : MonoBehaviour
                  break;
              }
         }
-        flag++;
-        if(flag >= 5){
-            Debug.Log("Vert."+vec.ToString()+" C:" +c.ToString());
-            flag=int.MinValue;
-        }
+        // flag++;
+        // if(flag >= 5){
+        //     Debug.Log("Vert."+vec.ToString()+" C:" +c.ToString());
+        //     flag=int.MinValue;
+        // }
         return c;
-        //b ist b = [v[0] * n[0] + v[1] * n[1] + v[2] * n[2] for v, n in zip(positions, normals)]
-        //a
-        //Q.Qef solver = new Qef(); 
-        // Mat3 ata, Vec3 atb, Vec4 pointaccum,out Vec3 x)
-        // Qef.Vec3 result = new Qef.Vec3(x, y, z);
-        // Qef.Vec3 col0 = new Qef.Vec3(x, y, z),
-        //        col1 = new Qef.Vec3(x, y, z),
-        //        col2 = new Qef.Vec3(x, y, z);
-        // Qef.Mat3 aTa = new Qef.Mat3(col0, col1, col2);
-        // Qef.Vec3 aTb = new Qef.Vec3(x, y, z);
-        // Qef.Vec4 pointaccum = new Qef.Vec4(x, y, z, z);
-        // Qef
-
-        //numpy.
-        // Numpy.np.linalg.lstsq(a,b, 0.05f);
-
-        // float res = Qef.Solve(aTa, aTb, pointaccum, out result);
-
-        // return new Vector3(result.x, result.y, result.z);
-        // return new Vector3(x, y, z);
-        //return Qef.(positions, normals);
-        // return Qef.solve_qef_3d(x, y, changes, normals);
     }
 
     private float adapt(float v0, float v1)
@@ -413,13 +378,18 @@ public class DualContouring3D : MonoBehaviour
                            ball_function(x, y, z + d) - ball_function(x, y, z - d) / 2 / d).normalized;
     }
 
-    private Vector3 normal_from_Cone(float x, float y, float z, float d = 0.01f)
+    private Vector3 normal_from_Cone6(float x, float y, float z, float d = 0.01f)
     {
         return new Vector3(sdConeExact(new Vector3(x + d, y, z),new Vector2(0.5f,0.5f),5 ) - sdConeExact(new Vector3(x - d, y, z),new Vector2(0.5f,0.5f),5) / 2 / d,
                            sdConeExact(new Vector3(x, y + d, z),new Vector2(0.5f,0.5f),5 ) - sdConeExact(new Vector3(x, y - d, z),new Vector2(0.5f,0.5f),5) / 2 / d,
                            sdConeExact(new Vector3(x, y, z + d),new Vector2(0.5f,0.5f),5 ) - sdConeExact(new Vector3(x, y, z - d),new Vector2(0.5f,0.5f),5) / 2 / d).normalized;
     }
-
+  private Vector3 normal_from_Cone(float x, float y, float z,Vector2 angle, float height=5, float d = 0.01f)
+    {
+        return new Vector3(sdConeExact(new Vector3(x + d, y, z),angle,height ) , 
+                           sdConeExact(new Vector3(x, y + d, z),angle,height ) , 
+                           sdConeExact(new Vector3(x, y, z + d),angle,height )   ).normalized;
+    }
     //approximate of normal
     private Vector3 normal_from_F(Func<float, float, float, float> function, float x, float y, float z, float d = 0.01f)
     {
@@ -450,6 +420,7 @@ public class DualContouring3D : MonoBehaviour
             coord.y +=Math.Abs(offset.y);
             coord.z +=Math.Abs(offset.z);
             sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y) , Math.Abs((int)coord.z)]=-1;
+            generateVertices(defAngle, defHeight);
             return true;
         }
         return false;
@@ -479,6 +450,7 @@ public class DualContouring3D : MonoBehaviour
                 }
             }
         }
+        generateVertices(angle,height);
         // Debug.Log("Is flag "+flag);
         // flag=0;
         return success;
@@ -499,13 +471,11 @@ public class DualContouring3D : MonoBehaviour
     // Update is called once per frame
      void Update()
      {
-         generateVertexes();
         regenerateMesh();       
         // gravity();
      }
 
-    //optimize by dynamically adapt areasize to be changed by creating a cone
-    //add check if after two stacked move
+    //optimize by dynamically adapting areasize to be changed by position and dimension of new cone
     public void gravity()
     {
           for (int x = 0; x <= areaSize; x++) 
@@ -569,27 +539,27 @@ public class DualContouring3D : MonoBehaviour
                         {
                             if (!solid2)
                             {
-                                vertices.Add(vertexe[x - 1, y - 1, z]);
+                                vertices.Add(vertexGrid[x - 1, y - 1, z]);
                                 indicies.Add(vertices.Count - 1);
 
-                                vertices.Add(vertexe[x - 0, y - 1, z]);
+                                vertices.Add(vertexGrid[x - 0, y - 1, z]);
                                 indicies.Add(vertices.Count - 1);
 
-                                vertices.Add(vertexe[x, y, z]);
+                                vertices.Add(vertexGrid[x, y, z]);
                                 indicies.Add(vertices.Count - 1);
 
-                                vertices.Add(vertexe[x - 1, y, z]);
+                                vertices.Add(vertexGrid[x - 1, y, z]);
                                 indicies.Add(vertices.Count - 1);
                             }
                             else
                             {
-                                vertices.Add(vertexe[x - 1, y, z]);
+                                vertices.Add(vertexGrid[x - 1, y, z]);
                                 indicies.Add(vertices.Count - 1);
-                                vertices.Add(vertexe[x, y, z]);
+                                vertices.Add(vertexGrid[x, y, z]);
                                 indicies.Add(vertices.Count - 1);
-                                vertices.Add(vertexe[x - 0, y - 1, z]);
+                                vertices.Add(vertexGrid[x - 0, y - 1, z]);
                                 indicies.Add(vertices.Count - 1);
-                                vertices.Add(vertexe[x - 1, y - 1, z]);
+                                vertices.Add(vertexGrid[x - 1, y - 1, z]);
                                 indicies.Add(vertices.Count - 1);
 
                             }
@@ -606,28 +576,28 @@ public class DualContouring3D : MonoBehaviour
                         {
                             if (solid2)
                             {
-                                vertices.Add(vertexe[x - 1, y, z - 1]);
+                                vertices.Add(vertexGrid[x - 1, y, z - 1]);
                                 indicies.Add(vertices.Count - 1);
 
-                                vertices.Add(vertexe[x, y, z - 1]);
+                                vertices.Add(vertexGrid[x, y, z - 1]);
                                 indicies.Add(vertices.Count - 1);
 
-                                vertices.Add(vertexe[x, y, z]);
+                                vertices.Add(vertexGrid[x, y, z]);
                                 indicies.Add(vertices.Count - 1);
 
-                                vertices.Add(vertexe[x - 1, y, z]);
+                                vertices.Add(vertexGrid[x - 1, y, z]);
                                 indicies.Add(vertices.Count - 1);
                             }
                             else
                             {
 
-                                vertices.Add(vertexe[x - 1, y, z]);
+                                vertices.Add(vertexGrid[x - 1, y, z]);
                                 indicies.Add(vertices.Count - 1);
-                                vertices.Add(vertexe[x, y, z]);
+                                vertices.Add(vertexGrid[x, y, z]);
                                 indicies.Add(vertices.Count - 1);
-                                vertices.Add(vertexe[x, y, z - 1]);
+                                vertices.Add(vertexGrid[x, y, z - 1]);
                                 indicies.Add(vertices.Count - 1);
-                                vertices.Add(vertexe[x - 1, y, z - 1]);
+                                vertices.Add(vertexGrid[x - 1, y, z - 1]);
                                 indicies.Add(vertices.Count - 1);
                             }
                         }
@@ -644,28 +614,28 @@ public class DualContouring3D : MonoBehaviour
 
                             if (!solid2)
                             {
-                                vertices.Add(vertexe[x, y - 1, z - 1]);
+                                vertices.Add(vertexGrid[x, y - 1, z - 1]);
                                 indicies.Add(vertices.Count - 1);
 
-                                vertices.Add(vertexe[x, y, z - 1]);
+                                vertices.Add(vertexGrid[x, y, z - 1]);
                                 indicies.Add(vertices.Count - 1);
 
-                                vertices.Add(vertexe[x, y, z]);
+                                vertices.Add(vertexGrid[x, y, z]);
                                 indicies.Add(vertices.Count - 1);
 
-                                vertices.Add(vertexe[x, y - 1, z]);
+                                vertices.Add(vertexGrid[x, y - 1, z]);
                                 indicies.Add(vertices.Count - 1);
                             }
                             else
                             {
 
-                                vertices.Add(vertexe[x, y - 1, z]);
+                                vertices.Add(vertexGrid[x, y - 1, z]);
                                 indicies.Add(vertices.Count - 1);
-                                vertices.Add(vertexe[x, y, z]);
+                                vertices.Add(vertexGrid[x, y, z]);
                                 indicies.Add(vertices.Count - 1);
-                                vertices.Add(vertexe[x, y, z - 1]);
+                                vertices.Add(vertexGrid[x, y, z - 1]);
                                 indicies.Add(vertices.Count - 1);
-                                vertices.Add(vertexe[x, y - 1, z - 1]);
+                                vertices.Add(vertexGrid[x, y - 1, z - 1]);
                                 indicies.Add(vertices.Count - 1);
                             }
                         }

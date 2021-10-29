@@ -157,7 +157,9 @@ MonoBehaviour:
   areaSize: 80
   notAdaptive: 1
   floor: -1
-  scale: 0.1
+  scale: 1
+  isGravity: 1
+  someNoise: 0
 --- !u!4 &16948155
 Transform:
   m_ObjectHideFlags: 0
@@ -1909,7 +1911,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1748315343
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1922,7 +1924,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 169ed5e15e7f35043be655543103248c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  areaSize: 10
+  areaSize: 80
+  d3D: {fileID: 16948154}
 --- !u!4 &1748315344
 Transform:
   m_ObjectHideFlags: 0
@@ -1931,7 +1934,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1748315342}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 4, z: 0}
+  m_LocalPosition: {x: -40, y: 4, z: -40}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}

@@ -70,7 +70,7 @@ public class Interactable : MonoBehaviour
                 //place += cam.transporm.position;
                 // place = cam.transform.forward * detectedHand.tracking_info.depth_estimation*5;
                 float state = detectedHand.gesture_info.state; //needs probably a better variable
-                float angle = 0.5f;//+anglechange/10; *(state/12)
+                // float angle = 0.5f;//+anglechange/10; *(state/12)
                 float height = 3;
                 //divide by 10 to switch slow
                 sandManager.add(place,selected/10,height);          
@@ -83,7 +83,6 @@ public class Interactable : MonoBehaviour
     void DetectHandGestureTap()
     {
         if(ManomotionManager.Instance != null){
-
             //All the information of the hand
             HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
 
@@ -95,7 +94,7 @@ public class Interactable : MonoBehaviour
                 selected +=1;
                 if (selected ==40)selected=0;
                 uimanager.changeMaterial(selected/10);
-            }
+            } 
         }
 
     }
@@ -151,7 +150,7 @@ public class Interactable : MonoBehaviour
 		Warning warning = ManomotionManager.Instance.Hand_infos[0].hand_info.warning;
 
 	 	HighlightEdgeWarning(warning);
- }
+    }
 
 	/// <summary>
 	/// Visually illustrated the users hand approaching the edges of the screen

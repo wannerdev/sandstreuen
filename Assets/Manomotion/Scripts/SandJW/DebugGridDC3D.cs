@@ -92,7 +92,7 @@ class DebugGridDC3D : MonoBehaviour
                                     flag++;
                                     GameObject text = new GameObject();
                                     TextMesh t = text.AddComponent<TextMesh>();
-                                    t.text = ""+d3D.grid[x,y,z];
+                                    t.text = ""+d3D.sdfgrid[x,y,z];
                                     t.fontSize = 30;
                                     t.transform.position = new Vector3(x, y, z);
                                 }

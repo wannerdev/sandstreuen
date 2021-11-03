@@ -71,7 +71,7 @@ public class Interactable : MonoBehaviour
                 // place = cam.transform.forward * detectedHand.tracking_info.depth_estimation*5;
                 float state = detectedHand.gesture_info.state; //needs probably a better variable
                 // float angle = 0.5f;//+anglechange/10; *(state/12)
-                float height = 3;
+                float height = 5;
                 //divide by 10 to switch slow
                 sandManager.add(place,selected/10,height);          
             }

@@ -9,13 +9,13 @@ public class SandManager : MonoBehaviour
     // JWUIManager uimanager = uimanager.GetComponent<JWUIManager>();
     public DualContouring3D dc3D;
     public JWUIManager uimanager;
-    public modes modeVal;
+    public modes mode;
     public Bodies.types coneAngle;// select;
     public enum modes{CONE, SINGLE, REMOVE};
 
     void Start()
     {
-         modeVal= modes.CONE;
+         mode= modes.CONE;
          uimanager.changeMode("cone");
          coneAngle=Bodies.types.SANDDRY;
          dc3D = dc3D.GetComponent<DualContouring3D>();
@@ -23,7 +23,7 @@ public class SandManager : MonoBehaviour
 
     public void add(Vector3 place,  int selected,float height=5 )
     {
-        if( modeVal == modes.CONE){
+        if( mode == modes.CONE){
             if(dc3D.add_cone(place, height, selected)){
                 dc3D.regenerateMesh();
                 uimanager.resetWarning();
@@ -31,7 +31,7 @@ public class SandManager : MonoBehaviour
             }else{
                 uimanager.warnOutside();
             }
-        }else if( modeVal == modes.REMOVE){
+        }else if( mode == modes.REMOVE){
             if(dc3D.add_single(place,selected,true)){
                 dc3D.regenerateMesh();
                 uimanager.resetWarning();
@@ -39,7 +39,7 @@ public class SandManager : MonoBehaviour
             }else{
                 uimanager.warnOutside();
             }
-        }else if( modeVal == modes.SINGLE){
+        }else if( mode == modes.SINGLE){
             if(dc3D.add_single(place, selected)){
                 dc3D.regenerateMesh();
                 uimanager.resetWarning();
@@ -57,16 +57,17 @@ public class SandManager : MonoBehaviour
 
     public void changeMode(bool plus){
         if(plus){
-        this.modeVal = this.modeVal+1;
+        this.mode = this.mode+1;
         }
         else{
-            this.modeVal = this.modeVal-1;
+            this.mode = this.mode-1;
         }
-        if(modeVal<0)modeVal=modes.REMOVE;
-        if(((int)modeVal)>2)modeVal=modes.CONE;
+        if(mode<0)mode=modes.REMOVE;
+        if(((int)mode)>2)mode=modes.CONE;
 
-        uimanager.changeMode(modeVal.ToString());
+        uimanager.changeMode(mode.ToString());
     }
+
     public void changeMaterial(int selected){
         uimanager.changeMaterial(selected);
     }

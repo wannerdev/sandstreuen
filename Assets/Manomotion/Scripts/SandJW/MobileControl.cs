@@ -78,34 +78,10 @@ public class MobileControl : MonoBehaviour {
             rotX += -1f;
         }
         direction = direction*0.3f;
-        //direction = cam.transform.TransformDirection(direction)*0.3f;
-         //cam.transform.Rotate(rotX,rotY,rotZ,Space.Self);
+        
         var rotate = new Vector3(transform.eulerAngles.x + rotX, transform.eulerAngles.y + rotY, 0);
         transform.eulerAngles = rotate;
         cam.transform.position += direction;
-        // cam.transform.localRotation = Quaternion.Euler(rotX, rotY, 0);
-        //cam.transform.rotation = quaternion;
-        // if (Input.GetMouseButtonDown(0)){
-        //     touchStart = GetWorldPosition(groundZ);
-        // }
-        // if (Input.GetMouseButton(0)){
-        //     Vector3 direction = touchStart - GetWorldPosition(groundZ);
-        //     cam.transform.position += direction;
-        // }
-
-
-        // Quaternion quaternion = new Quaternion(
-        //              rotX,
-        //              rotY,
-        //              rotZ,
-        //              cam.transform.rotation.w);
-        
-        // if (Input.GetMouseButtonDown(1)){
-        //     touchStart2 = GetWorldPosition(groundZ);
-        // }
-        // if (Input.GetMouseButton(1)){
-        //     Vector3 direction = touchStart2 - GetWorldPosition(groundZ);
-        //     cam.transform.eulerAngles = transform.eulerAngles - new Vector3(0,2,0);
-        // }
+    
     }
 }

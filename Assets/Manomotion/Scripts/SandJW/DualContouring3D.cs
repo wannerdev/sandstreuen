@@ -14,11 +14,13 @@ public class DualContouring3D : MonoBehaviour
     public float scale; //1
     public float contour; //0
     public bool isGravity; //true
-    public bool isPrettygravity; //false very expensive, with some optimization should be runnable
+    public bool isPretty; //false very expensive, with some optimization should be runnable
+    private bool addedFlag; //when to recalculate vertices 
     
     
     // isWithCone start with Cone
     // someNoise  not really functional but interesting to look at with gravity enabled
+    // Default just a floor
     public enum settings{SOMENOISE, ISWITHCONE,DEFAULT};
     public settings startwith;
 
@@ -26,31 +28,30 @@ public class DualContouring3D : MonoBehaviour
     static Vector2 defAngle = new Vector2(0.5f,0.5f);
     const float  defHeight = 10;
 
-    //grid to generate quads by
+    //Grid to generate quads by
     internal Vector3[,,] vertexGrid;
+
     //Quads
     internal List<Vector3> vertices;
     internal List<int> indicies;
 
-    //Offset to World coordinates
+    //Offset to World coordinates - no y component
     private Vector3 offset;
 
-    public bool[,,] grid;
-    //  internal float[,,] sdfgrid;
+    // public bool[,,] grid;
 
-    //public bool[,,] grid;
     //sdf = new float[areaSize*x*areaSize*y*areaSize*z]; //??
-    //in the future maybe use onedimensional array - compiler heavily optimized for one dimension
+    //In the future maybe use onedimensional array - compiler heavily optimized for one dimension
     internal float[,,] sdfgrid;
 
     internal Mesh mesh;
     internal MeshFilter filter;
     internal MeshRenderer meshRenderer;
 
-    //debug
+    //Debug
     private int flag=0;
 
-    //regarding schmitz adaptivity
+    //Regarding Schmitz adaptivity
     private readonly int MaxParticleIterations=50;
     float threshold = 0.001f;
 
@@ -66,14 +67,13 @@ public class DualContouring3D : MonoBehaviour
         meshRenderer.material = material;
         //inits
         mesh = new Mesh();
-
         
-        //generated boolean space
-        grid = new bool [areaSize +2, areaSize+2 , areaSize+2 ];
+        //Generated boolean space
+        // grid = new bool [areaSize +2, areaSize+2 , areaSize+2 ];
 
         vertexGrid = new Vector3[areaSize + 1, areaSize + 1, areaSize + 1];
 
-        //generated SDF space
+        //Generated SDF space
         sdfgrid = new float [areaSize +2, areaSize+2 , areaSize+2 ];
 
         switch(startwith) {
@@ -111,14 +111,14 @@ public class DualContouring3D : MonoBehaviour
                     }
                 }
                 break;
-            default: 
+            default: //Just a floor
                 for ( int i = 0; i < (areaSize +2);i++ ) {
                     for ( int j = 0; j < (areaSize +2);j++ ) {
                         for ( int k = 0; k <(areaSize +2);k++ ) {
                             if (j<floor){ 
                                 sdfgrid[i,j,k] = -1;
                             }else{
-                                sdfgrid[i,j,k] = 1;
+                                sdfgrid[i,j,k] = 1+Math.Abs(j);
                             }
                         }
                     }
@@ -287,23 +287,24 @@ public class DualContouring3D : MonoBehaviour
         }
     }
 
-        private void generateVertices(Vector3 coord, Vector2 angle,float height)
+    //Not in use
+    private void generateVertices(Vector3 coord, Vector2 angle,float height)
     {
 
         Vector3 index = new Vector3(areaSize/2,0,areaSize/2);
         index += coord;
 
-        // //Optimization attempt
+        // Optimization attempt
         int xStart =(int) (index.x-height-10);
-        int yStart = (int)(index.y-height-5); 
-        int zStart = (int)(index.z-height-10);         
+        int yStart =(int) (index.y-height-5);
+        int zStart =(int) (index.z-height-10);
         int xEnd = (int)  (index.x+height+10);
         int yEnd = (int)  (index.y+height+5);
         int zEnd = (int)  (index.z+height+10);
 
-         for (int x = xStart; x <= xEnd; x++)
+        for (int x = xStart; x <= xEnd; x++)
         {
-            for (int y =yStart; y <= yEnd; y++)
+            for (int y = yStart; y <= yEnd; y++)
             {
                 for (int z = zStart; z <= zEnd; z++)
                 {
@@ -473,7 +474,7 @@ public class DualContouring3D : MonoBehaviour
 
     }
 
-    //approximate of normal
+    //Approximate of normal
     private Vector3 normal_from_Ball(float x, float y, float z, float d = 0.01f)
     {
         return new Vector3(ball_function(x + d, y, z) - ball_function(x - d, y, z) / 2 / d,
@@ -487,13 +488,14 @@ public class DualContouring3D : MonoBehaviour
                            sdConeExact(new Vector3(x, y + d, z),new Vector2(0.5f,0.5f),5 ) - sdConeExact(new Vector3(x, y - d, z),new Vector2(0.5f,0.5f),5) / 2 / d,
                            sdConeExact(new Vector3(x, y, z + d),new Vector2(0.5f,0.5f),5 ) - sdConeExact(new Vector3(x, y, z - d),new Vector2(0.5f,0.5f),5) / 2 / d).normalized;
     }
-  private Vector3 normal_from_Cone(float x, float y, float z,Vector2 angle, float height=5, float d = 0.01f)
+    private Vector3 normal_from_Cone(float x, float y, float z,Vector2 angle, float height=5, float d = 0.01f)
     {
         return new Vector3(sdConeExact(new Vector3(x + d, y, z),angle,height ) , 
                            sdConeExact(new Vector3(x, y + d, z),angle,height ) , 
                            sdConeExact(new Vector3(x, y, z + d),angle,height )   ).normalized;
     }
-    //approximate of normal
+    
+    //Delegate 
     private Vector3 normal_from_F(Func<float, float, float, float> function, float x, float y, float z, float d = 0.01f)
     {
         return new Vector3(function(x + d, y, z) - function(x - d, y, z) / 2 / d,
@@ -503,40 +505,19 @@ public class DualContouring3D : MonoBehaviour
 
     bool isInside(int x, int y, int z)
     {
-        //check cones add floor again or generate noise
-        // if(notAdaptive){
-            // return Mathf.PerlinNoise(x,y) < 0.5;//test area
-
-            //Boolean
-            // return grid[x,y,z];
-            
-            return sdfgrid[x,y,z] < contour;
-        // }else{
-        //     if( sdConeExact(new Vector3(x,y,z), new Vector2(0.5f, 0.5f), 5) < 0 ){
-        //         return true;
-        //     }
-        //     return false;
-        // }
-   
-        // return y < floor; 
-        
-    }
-
-
-    internal bool remove(Vector3 place)
-    {
-        throw new NotImplementedException();
+        return sdfgrid[x,y,z] < contour;        
     }
 
 
     public bool add_single(Vector3 coord, int material,bool remove=false){
-        //adjust to scale
+        //Adjust to scale
         coord.x /=scale;
         coord.y /=scale;
         coord.z /=scale;
         sbyte change =-1;
         if(remove)change=1;
         
+        addedFlag=true;
         if(checkPosBounds(coord)){
             coord.x +=Math.Abs(offset.x);
             coord.y +=Math.Abs(offset.y);
@@ -550,7 +531,7 @@ public class DualContouring3D : MonoBehaviour
             sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y)+1 , Math.Abs((int)coord.z)]=change;
             sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y-1) , Math.Abs((int)coord.z)]=change;
             sdfgrid[Math.Abs((int)coord.x)+1, Math.Abs((int)coord.y) , Math.Abs((int)coord.z)]=change;
-            generateVertices(coord,defAngle, defHeight);
+            // generateVertices(coord,defAngle, defHeight);
             return true;
         }
         return false;
@@ -559,18 +540,19 @@ public class DualContouring3D : MonoBehaviour
     public bool add_cone(Vector3 coord, float height, int material)
     {
         float aperture = Bodies.sands[material];
-        Debug.Log("executed at " + coord.ToString());
+        addedFlag=true;
+        // Debug.Log("executed at " + coord.ToString());
         if(!checkPosBounds(coord)) return false;
         Vector2 angle = new Vector2((float)Math.Sin(aperture),(float) Math.Cos(aperture));
         bool success = true;
         
-        //Simplification: no cone has a bigger circumference than its height
+        //Simplification(wrong): no cone has a bigger circumference than its height
         //index of  0,0,0
         // 40,0,40
         Vector3 index = new Vector3(areaSize/2,0,areaSize/2);
         index += coord;
 
-        // //Optimization attempt
+        //Optimization attempt
         float xStart = index.x-height-10-1/aperture;
         float yStart = index.y-height-5-1/aperture; 
         float zStart = index.z-height-10-1/aperture;
@@ -578,7 +560,7 @@ public class DualContouring3D : MonoBehaviour
         float xEnd = index.x+height+10+1/aperture;
         float yEnd = index.y+height+5+1/aperture;
         float zEnd = index.z+height+10+1/aperture;
-        //optimize by limiting for loops by cones dimension
+        //optimize by limiting for loops by cones more exact dimension
         //http://mathcentral.uregina.ca/QQ/database/QQ.09.07/s/marija1.html
         // if(coord.y+height < areaSize) yLimit= coord.y+height;
         // double diameter = 2*height *Math.Tan(aperture);
@@ -645,7 +627,7 @@ public class DualContouring3D : MonoBehaviour
                 }
             }
         }
-        generateVertices(angle,height);
+        // generateVertices(angle,height);
         // Debug.Log("Is flag "+flag);
         // flag=0;
         return success;
@@ -676,11 +658,18 @@ public class DualContouring3D : MonoBehaviour
         regenerateMesh();
         if(isGravity){
             gravity(); 
-        }      
+        }
+        if(isPretty){
+            generateVertices(defAngle,defHeight);
+        }else if( Time.frameCount%30 ==0 && addedFlag){
+            //use a general cone to render the sdfgrid prettier
+            generateVertices(defAngle,defHeight);
+            addedFlag=false;
+        }
      }
 
-    //optimize by dynamically adapting areasize to be changed by position and dimension of new cone
-    //todo think about vertexgrid aswell
+    //Optimize by dynamically adapting areasize to be changed by position and dimension of new cone
+    //Todo think about vertexgrid aswell
     public void gravity()
     {
           for (int x = 0; x <= areaSize; x++) 
@@ -690,10 +679,11 @@ public class DualContouring3D : MonoBehaviour
                 for (int z = 0; z <= areaSize; z++){
                     if(sdfgrid[x,y,z] < 0){
                          if(!(sdfgrid[x,y-1,z] < 0)){
-                            //no ground
+                            //No ground
                             sdfgrid[x,y-1,z] = sdfgrid[x,y,z];
                             sdfgrid[x,y,z] = 2;
 
+                            addedFlag=true;
                             //vertexGrid
                             // vertexGrid[x,y-1,z] = vertexGrid[x,y,z];
                             // vertexGrid[x,y,z] = new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
@@ -701,6 +691,7 @@ public class DualContouring3D : MonoBehaviour
 
                             sdfgrid[x+1,y-1,z] = sdfgrid[x,y,z];;
                             sdfgrid[x,y,z] = 2;
+                            addedFlag=true;
 
                             // vertexGrid[x+1,y-1,z] = vertexGrid[x,y,z];
                             // vertexGrid[x,y,z] = new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
@@ -709,6 +700,7 @@ public class DualContouring3D : MonoBehaviour
                             sdfgrid[x-1,y-1,z] = sdfgrid[x,y,z];;
                             sdfgrid[x,y,z] = 2;
 
+                            addedFlag=true;
                             // vertexGrid[x-1,y-1,z] = vertexGrid[x,y,z];
                             // vertexGrid[x,y,z] = new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
                         }else if(!(sdfgrid[x,y-1,z+1] < 0)){
@@ -716,13 +708,14 @@ public class DualContouring3D : MonoBehaviour
                             sdfgrid[x,y-1,z+1] = sdfgrid[x,y,z];;
                             sdfgrid[x,y,z] = 2;
 
+                            addedFlag=true;
                             // vertexGrid[x,y-1,z+1] = vertexGrid[x,y,z];
                             // vertexGrid[x,y,z] = new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
                         }else if(x!=0 && z !=0 && !(sdfgrid[x-1,y-1,z-1] < 0)){
                             sdfgrid[x-1,y-1,z-1] = sdfgrid[x,y,z];;
                             sdfgrid[x,y,z] = 2;
-                            generateVertices(new Vector3(x,y,z),defAngle,defHeight);
 
+                            addedFlag=true;
                             // vertexGrid[x-1,y-1,z-1] = vertexGrid[x,y,z];
                             // vertexGrid[x,y,z] = new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
                             //maybe change < 0 to < contour?
@@ -735,19 +728,12 @@ public class DualContouring3D : MonoBehaviour
                 }
             }
         }
-        if(isPrettygravity){
-            generateVertices(defAngle,defHeight);
-        }
+        
     }
     
-    //Maybe regenerate only a specific area? depending on cones dimension
+    //To test regenerate only a specific area, depending on input location and dimension
     public void regenerateMesh()
     {
-        //Without Clearing you can only place a certain amount of cones
-        //it seems there is a maximum to the vertices you can add, no error is displayed when it happens!
-        vertices.Clear();
-        indicies.Clear();
-
         // If one point is inside and not all points are inside place add vertices for Quad -
         // another way to phrase it is just show the edges where a sign switch happens
         for (int x = 0; x < areaSize; x++) 
@@ -876,5 +862,10 @@ public class DualContouring3D : MonoBehaviour
 
         mesh.RecalculateNormals();
         mesh.RecalculateTangents();
+        
+        //Without Clearing you can only place a certain amount of cones
+        //it seems there is a maximum to the vertices you can add, no error is displayed when it happens!
+        vertices.Clear();
+        indicies.Clear();
     }
 }

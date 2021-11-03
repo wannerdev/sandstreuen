@@ -4,6 +4,7 @@ using UnityEngine;
 
 public static class Bodies
 {
+    //Angles
     //public const int sandDry= 34, sandWaStart=15, sandWaEnd=30,sandWet=45;
     public enum types{SANDDRY, SANDWATERSTART, SANDWATEREND,SANDWET};
     public static string[] sandname= {"sandDry", "sandWaterStart", "sandWaterEnd","sandWet"};
@@ -58,7 +59,8 @@ public static class Bodies
         return (float)(Math.Sqrt(d) * Math.Sign(s));
     }
 
-    //Credit https://answers.unity.com/questions/938178/3d-perlin-noise.html
+    // Adapted from
+    // https://answers.unity.com/questions/938178/3d-perlin-noise.html
     public static float perlinNoise3D(float x, float y, float z)
     {
      float xy = Mathf.PerlinNoise(x, y);

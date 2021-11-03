@@ -55,16 +55,13 @@ public class CameraControl : MonoBehaviour
         }
 
         if (Input.GetKey(KeyCode.UpArrow)){
-            sandManager.changeMode(SandManager.modes.SINGLE);
+            sandManager.changeMode(true);
         }
         
         if (Input.GetKey(KeyCode.DownArrow)){
-            sandManager.changeMode(SandManager.modes.CONE);
+            sandManager.changeMode(false);
         }
         
-        if (Input.GetKey(KeyCode.DownArrow)){
-            sandManager.changeMode(SandManager.modes.REMOVE);
-        }
         //Move cones old object oriented way
         // for(int i=0; i < generator.GetComponent<DualContouring3D>().cones.Count;i++){
         //     if (Input.GetKey(KeyCode.LeftArrow))

@@ -21,7 +21,7 @@ public class SandManager : MonoBehaviour
          dc3D = dc3D.GetComponent<DualContouring3D>();
     }
 
-    public void add(Vector3 place,  int selected,float height=3 )
+    public void add(Vector3 place,  int selected,float height=5 )
     {
         if( modeVal == modes.CONE){
             if(dc3D.add_cone(place, height, selected)){
@@ -39,7 +39,7 @@ public class SandManager : MonoBehaviour
             }else{
                 uimanager.warnOutside();
             }
-        }else{
+        }else if( modeVal == modes.SINGLE){
             if(dc3D.add_single(place, selected)){
                 dc3D.regenerateMesh();
                 uimanager.resetWarning();
@@ -55,9 +55,17 @@ public class SandManager : MonoBehaviour
     }
 
 
-    public void changeMode(modes mode){
-        this.modeVal = mode;
-        uimanager.changeMode(mode.ToString());
+    public void changeMode(bool plus){
+        if(plus){
+        this.modeVal = this.modeVal+1;
+        }
+        else{
+            this.modeVal = this.modeVal-1;
+        }
+        if(modeVal<0)modeVal=modes.REMOVE;
+        if(((int)modeVal)>2)modeVal=modes.CONE;
+
+        uimanager.changeMode(modeVal.ToString());
     }
     public void changeMaterial(int selected){
         uimanager.changeMaterial(selected);

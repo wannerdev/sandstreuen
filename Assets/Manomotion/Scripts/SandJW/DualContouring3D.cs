@@ -512,7 +512,7 @@ public class DualContouring3D : MonoBehaviour
             //Star
             sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y) , Math.Abs((int)coord.z)]= change;
             sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y) , Math.Abs((int)coord.z)+1]= change;
-            sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y) , Math.Abs((int)coord.z)-1]=change;
+            sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y) , Math.Abs((int)coord.z-1)]=change;
             sdfgrid[Math.Abs((int)coord.x-1), Math.Abs((int)coord.y) , Math.Abs((int)coord.z)]=change;
             sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y)+1 , Math.Abs((int)coord.z)]=change;
             sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y-1) , Math.Abs((int)coord.z)]=change;

@@ -287,6 +287,39 @@ public class DualContouring3D : MonoBehaviour
         }
     }
 
+        private void generateVertices(Vector3 coord, Vector2 angle,float height)
+    {
+
+        Vector3 index = new Vector3(areaSize/2,0,areaSize/2);
+        index += coord;
+
+        // //Optimization attempt
+        int xStart =(int) (index.x-height-10);
+        int yStart = (int)(index.y-height-5); 
+        int zStart = (int)(index.z-height-10);         
+        int xEnd = (int)  (index.x+height+10);
+        int yEnd = (int)  (index.y+height+5);
+        int zEnd = (int)  (index.z+height+10);
+
+         for (int x = xStart; x <= xEnd; x++)
+        {
+            for (int y =yStart; y <= yEnd; y++)
+            {
+                for (int z = zStart; z <= zEnd; z++)
+                {
+                    Vector3 vertex = find_vertex(x, y, z, angle, height);
+                    if (vertex == Vector3.negativeInfinity)
+                    {
+                        continue;
+                    }
+                    vertexGrid[x, y, z] = vertex;
+                    //add indicies?
+                }
+            }
+        }
+    }
+
+
     private Vector3 find_vertex(float x, float y, float z, Vector2 angle, float height)
     {
         if (!isAdaptive)
@@ -477,7 +510,7 @@ public class DualContouring3D : MonoBehaviour
             //Boolean
             // return grid[x,y,z];
             
-            return sdfgrid[x,y,z] <= contour;
+            return sdfgrid[x,y,z] < contour;
         // }else{
         //     if( sdConeExact(new Vector3(x,y,z), new Vector2(0.5f, 0.5f), 5) < 0 ){
         //         return true;
@@ -517,7 +550,7 @@ public class DualContouring3D : MonoBehaviour
             sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y)+1 , Math.Abs((int)coord.z)]=change;
             sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y-1) , Math.Abs((int)coord.z)]=change;
             sdfgrid[Math.Abs((int)coord.x)+1, Math.Abs((int)coord.y) , Math.Abs((int)coord.z)]=change;
-            generateVertices(defAngle, defHeight);
+            generateVertices(coord,defAngle, defHeight);
             return true;
         }
         return false;
@@ -530,37 +563,66 @@ public class DualContouring3D : MonoBehaviour
         if(!checkPosBounds(coord)) return false;
         Vector2 angle = new Vector2((float)Math.Sin(aperture),(float) Math.Cos(aperture));
         bool success = true;
-        // double xLimit = areaSize;
-        // double yLimit = areaSize;
-        // double zLimit = areaSize;
+        
+        //Simplification: no cone has a bigger circumference than its height
+        //index of  0,0,0
+        // 40,0,40
+        Vector3 index = new Vector3(areaSize/2,0,areaSize/2);
+        index += coord;
 
-        // double xStart = areaSize;
-        // double yStart = areaSize;
-        // double zStart = areaSize;
-        //todo optimize by limiting for loops by cones dimension
+        // //Optimization attempt
+        float xStart = index.x-height-10-1/aperture;
+        float yStart = index.y-height-5-1/aperture; 
+        float zStart = index.z-height-10-1/aperture;
+                
+        float xEnd = index.x+height+10+1/aperture;
+        float yEnd = index.y+height+5+1/aperture;
+        float zEnd = index.z+height+10+1/aperture;
+        //optimize by limiting for loops by cones dimension
         //http://mathcentral.uregina.ca/QQ/database/QQ.09.07/s/marija1.html
         // if(coord.y+height < areaSize) yLimit= coord.y+height;
         // double diameter = 2*height *Math.Tan(aperture);
         // if(coord.x+diameter < areaSize) xLimit=coord.x+ diameter;
         // if(coord.z+diameter < areaSize) zLimit= coord.z+diameter;
-        for (float x = 0; x <= areaSize; x=x+scale) 
+
+        if(xStart <0)xStart=0;
+        if(yStart <0)yStart=0;
+        if(zStart <0)zStart=0;
+
+
+        if(xEnd >areaSize)xEnd=areaSize;
+        if(yEnd >areaSize)yEnd=areaSize;
+        if(zEnd >areaSize)zEnd=areaSize;
+
+        // Debug.Log("Optimizationlogs: ");        
+        // Debug.Log(xStart );
+        // Debug.Log(yStart );
+        // Debug.Log(zStart );
+        // Debug.Log(xEnd );
+        // Debug.Log(yEnd );
+        // Debug.Log(zEnd );        
+        
+
+        for (float x =xStart; x <=  xEnd; x=x+scale) 
         {
-            for (float y = 0; y <= height+coord.y; y=y+scale)
+            for (float y = yStart; y <= yEnd; y=y+scale)
             {
-                for (float z = 0; z <= areaSize; z=z+scale){
+                for (float z =zStart; z <=  zEnd; z=z+scale){
                     //reduces to near 0,0,0
                     //Vector3 position = new Vector3((x-coord.x/scale,(y-coord.y)/scale ,(z-coord.z)/scale);
                     Vector3 position = new Vector3(x-coord.x,y-coord.y ,z-coord.z);
                     
-                    // float sx = (x*scale);s
+                    // float sx = (x*scale);
                     // float sy = (y*scale);
                     // float sz = (z*scale);
                     // Vector3 position = new Vector3(sx-coord.x,sy-coord.y ,sz-coord.z);
+
+                    
                     //Cone Exact is always at zero so remove added offset
                     position += offset;
                     float cache = sdConeExact(position, angle, height);
                     if( cache < 1) {//to test 0.5
-                        Vector3 index = new Vector3(x,y,z);
+                        index = new Vector3(x,y,z);
                         // Debug.Log("in Cone at " + index.ToString());
                         // i don't want to scale offset
                         index += offset;
@@ -568,6 +630,7 @@ public class DualContouring3D : MonoBehaviour
                         index.y /=scale;
                         index.z /=scale;
                         index -= offset;
+                        // Debug.Log("Index:"+(int)(index.x)+" "+(int)(index.y)+" "+ (int)(index.z));
                         sdfgrid[(int)(index.x),(int)(index.y), (int)(index.z)] = cache;
 
                         // index.x +=Math.Abs(offset.x*scale);
@@ -578,13 +641,7 @@ public class DualContouring3D : MonoBehaviour
                         // if(checkIndexBounds(index) ) {
                         //     grid[(int)(index.x),(int)(index.y), (int)(index.z)] =true;
                         // }
-                        
-                        // float cache = sdConeExact(position, angle, height) ;
-                        // flag=2;
-                        // if(cache  < 1 ) {//to test 0.5
-                            // Debug.Log("Cache cone:"+cache);
-                            // flag=1;
-                        }
+                    }
                 }
             }
         }
@@ -613,9 +670,6 @@ public class DualContouring3D : MonoBehaviour
     }
 
 
-
-
-
     // Update is called once per frame
      void Update()
      {
@@ -626,7 +680,7 @@ public class DualContouring3D : MonoBehaviour
      }
 
     //optimize by dynamically adapting areasize to be changed by position and dimension of new cone
-    //todo move vertexgrid aswell.
+    //todo think about vertexgrid aswell
     public void gravity()
     {
           for (int x = 0; x <= areaSize; x++) 
@@ -640,26 +694,42 @@ public class DualContouring3D : MonoBehaviour
                             sdfgrid[x,y-1,z] = sdfgrid[x,y,z];
                             sdfgrid[x,y,z] = 2;
 
-//                            vertices
+                            //vertexGrid
+                            // vertexGrid[x,y-1,z] = vertexGrid[x,y,z];
+                            // vertexGrid[x,y,z] = new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
                         }else if(!(sdfgrid[x+1,y-1,z] < 0)){
 
                             sdfgrid[x+1,y-1,z] = sdfgrid[x,y,z];;
                             sdfgrid[x,y,z] = 2;
+
+                            // vertexGrid[x+1,y-1,z] = vertexGrid[x,y,z];
+                            // vertexGrid[x,y,z] = new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
                         }else if(x!=0 && !(sdfgrid[x-1,y-1,z] < 0)){
 
                             sdfgrid[x-1,y-1,z] = sdfgrid[x,y,z];;
                             sdfgrid[x,y,z] = 2;
+
+                            // vertexGrid[x-1,y-1,z] = vertexGrid[x,y,z];
+                            // vertexGrid[x,y,z] = new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
                         }else if(!(sdfgrid[x,y-1,z+1] < 0)){
 
                             sdfgrid[x,y-1,z+1] = sdfgrid[x,y,z];;
                             sdfgrid[x,y,z] = 2;
+
+                            // vertexGrid[x,y-1,z+1] = vertexGrid[x,y,z];
+                            // vertexGrid[x,y,z] = new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
                         }else if(x!=0 && z !=0 && !(sdfgrid[x-1,y-1,z-1] < 0)){
                             sdfgrid[x-1,y-1,z-1] = sdfgrid[x,y,z];;
                             sdfgrid[x,y,z] = 2;
+                            generateVertices(new Vector3(x,y,z),defAngle,defHeight);
+
+                            // vertexGrid[x-1,y-1,z-1] = vertexGrid[x,y,z];
+                            // vertexGrid[x,y,z] = new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
                             //maybe change < 0 to < contour?
-                        }else if( y==0 || sdfgrid[x,y-1,z] < 0 ){
-                            //ground below
                         }
+                        ////else if( y==0 || sdfgrid[x,y-1,z] < 0 ){
+                            //ground below do nothing
+                        //}
                     }
                         // flag=1;
                 }

@@ -236,6 +236,7 @@ public class DualContouring3D : MonoBehaviour
         {
             return new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
         }
+        threshold=0.001f;
         threshold*= threshold;
         Vector3 vec = new Vector3(x, y, z);
         float[,,] edges = new float[2, 2, 2];
@@ -293,12 +294,14 @@ public class DualContouring3D : MonoBehaviour
         }
 
         if (changes.Count <= 1)
-            return new Vector3(x + 0.5f, y + 0.5f, z + 0.5f); 
+            return new Vector3(x+0.5f,y+0.5f,z+0.5f); 
+            // return Vector3.negativeInfinity; 
 
 
         var normals = new List<Vector3>();
         foreach (Vector3 v in changes ){
-            normals.Add(normal_from_Cone(v[0], v[1],v[2],angle,height));
+            normals.Add(normal_from_Cone6(v[0], v[1],v[2]));
+            //normals.Add(normal_from_Cone(v[0], v[1],v[2],angle,height));
             // Vector3 n = normal_from_Ball(v[0], v[1],v[2]);
             // normals.Add(n.x);
             // normals.Add(n.y);
@@ -493,7 +496,7 @@ public class DualContouring3D : MonoBehaviour
      void Update()
      {
         regenerateMesh();       
-        gravity();
+        // gravity();
      }
 
     //optimize by dynamically adapting areasize to be changed by position and dimension of new cone

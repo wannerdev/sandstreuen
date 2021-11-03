@@ -7,33 +7,41 @@ public class SandManager : MonoBehaviour
 {
     
     // JWUIManager uimanager = uimanager.GetComponent<JWUIManager>();
-    public DualContouring3D d3D;
+    public DualContouring3D dc3D;
     public JWUIManager uimanager;
-    public string modeVal;
+    public modes modeVal;
     public Bodies.types coneAngle;// select;
+    public enum modes{CONE, SINGLE, REMOVE};
 
     void Start()
     {
-         modeVal="cone";
+         modeVal= modes.CONE;
          uimanager.changeMode("cone");
          coneAngle=Bodies.types.SANDDRY;
-        // uimanager = 
-        d3D = d3D.GetComponent<DualContouring3D>();
+         dc3D = dc3D.GetComponent<DualContouring3D>();
     }
 
     public void add(Vector3 place,  int selected,float height=3 )
     {
-        if( modeVal == "cone"){
-            if(d3D.add_cone(place, height, selected)){
-                d3D.regenerateMesh();
+        if( modeVal == modes.CONE){
+            if(dc3D.add_cone(place, height, selected)){
+                dc3D.regenerateMesh();
+                uimanager.resetWarning();
+                uimanager.conePosition(place);
+            }else{
+                uimanager.warnOutside();
+            }
+        }else if( modeVal == modes.REMOVE){
+            if(dc3D.add_single(place,selected,true)){
+                dc3D.regenerateMesh();
                 uimanager.resetWarning();
                 uimanager.conePosition(place);
             }else{
                 uimanager.warnOutside();
             }
         }else{
-            if(d3D.add_single(place, selected)){
-                d3D.regenerateMesh();
+            if(dc3D.add_single(place, selected)){
+                dc3D.regenerateMesh();
                 uimanager.resetWarning();
                 
                 // place.x +=Math.Abs(d3D.offset.x);
@@ -47,9 +55,9 @@ public class SandManager : MonoBehaviour
     }
 
 
-    public void changeMode(string mode){
+    public void changeMode(modes mode){
         this.modeVal = mode;
-        uimanager.changeMode(mode);
+        uimanager.changeMode(mode.ToString());
     }
     public void changeMaterial(int selected){
         uimanager.changeMaterial(selected);

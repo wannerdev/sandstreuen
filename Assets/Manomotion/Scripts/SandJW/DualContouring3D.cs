@@ -9,15 +9,21 @@ public class DualContouring3D : MonoBehaviour
     //settings
     public Material material;
     public int areaSize; //80
-    public bool notAdaptive; //true
+    public bool isAdaptive; //true
     public float floor; //-1
     public float scale; //1
+    public float contour; //0
     public bool isGravity; //true
-    public bool isWithCone; //true
-    public bool someNoise; //false not really functional
+    public bool isPrettygravity; //false very expensive, with some optimization should be runnable
+    
+    
+    // isWithCone start with Cone
+    // someNoise  not really functional but interesting to look at with gravity enabled
+    public enum settings{SOMENOISE, ISWITHCONE,DEFAULT};
+    public settings startwith;
 
     //Default cone  
-    static Vector2 defAngle =new Vector2(0.5f,0.5f);
+    static Vector2 defAngle = new Vector2(0.5f,0.5f);
     const float  defHeight = 10;
 
     //grid to generate quads by
@@ -28,6 +34,7 @@ public class DualContouring3D : MonoBehaviour
 
     //Offset to World coordinates
     private Vector3 offset;
+
     public bool[,,] grid;
     //  internal float[,,] sdfgrid;
 
@@ -69,30 +76,54 @@ public class DualContouring3D : MonoBehaviour
         //generated SDF space
         sdfgrid = new float [areaSize +2, areaSize+2 , areaSize+2 ];
 
-        if(someNoise){
-            for (int x = 0; x <= areaSize+1; x++)
-            {
-                for (int y = 0; y <= areaSize+1; y++)
+        switch(startwith) {
+
+            case settings.SOMENOISE:
+                for (int x = 0; x <= areaSize+1; x++)
                 {
-                    for (int z = 0; z <= areaSize+1; z++){
-                        grid[x,y,z] = perlinNoise3D(x+areaSize+0.342352f ,y+areaSize+0.9672f,z+areaSize+0.1352f) >0.5;
+                    for (int y = 0; y <= areaSize+1; y++)
+                    {
+                        for (int z = 0; z <= areaSize+1; z++){
+                            sdfgrid[x,y,z] = perlinNoise3D(y+areaSize+0.9672f ,x+areaSize+0.342352f,z+areaSize+0.1352f) -0.5f;
+                            if (y<floor){ 
+                                sdfgrid[x,y,z] = -1;
+                            }
+                        }
                     }
                 }
-            }
-        }else if(isWithCone){
-            Vector3 pos;
-            for ( int i = 0; i < (areaSize +2);i++ ) {
-                for ( int j = 0; j < (areaSize +2);j++ ) {
-                    for ( int k = 0; k <(areaSize +2);k++ ) {
-                        pos = new Vector3(i,j,k);
-                        pos.y +=-8;
-                        pos += offset;
-                        sdfgrid[i,j,k] = sdConeExact(pos,defAngle,defHeight);
-                        // Debug.Log(sdfgrid[i,j,k]);
-                        // Mathf.PerlinNoise(i/10+0.32342f+areaSize,j+0.568f+areaSize);//float.MaxValue;
+                break;
+            case settings.ISWITHCONE:
+                Vector3 pos;
+                for ( int i = 0; i < (areaSize +2);i++ ) {
+                    for ( int j = 0; j < (areaSize +2);j++ ) {
+                        for ( int k = 0; k <(areaSize +2);k++ ) {
+                            pos = new Vector3(i,j,k);
+                            pos.y +=-8;
+                            pos += offset;
+                            sdfgrid[i,j,k] = sdConeExact(pos,defAngle,defHeight);
+                            
+                            if (j<floor){ 
+                                sdfgrid[i,j,k] = -1;
+                            }
+                            // Debug.Log(sdfgrid[i,j,k]);
+                            // Mathf.PerlinNoise(i/10+0.32342f+areaSize,j+0.568f+areaSize);//float.MaxValue;
+                        }
                     }
                 }
-            }
+                break;
+            default: 
+                for ( int i = 0; i < (areaSize +2);i++ ) {
+                    for ( int j = 0; j < (areaSize +2);j++ ) {
+                        for ( int k = 0; k <(areaSize +2);k++ ) {
+                            if (j<floor){ 
+                                sdfgrid[i,j,k] = -1;
+                            }else{
+                                sdfgrid[i,j,k] = 1;
+                            }
+                        }
+                    }
+                }      
+                break; 
         }
         //Surface Quads
         indicies = new List<int>();
@@ -258,7 +289,7 @@ public class DualContouring3D : MonoBehaviour
 
     private Vector3 find_vertex(float x, float y, float z, Vector2 angle, float height)
     {
-        if (notAdaptive)
+        if (!isAdaptive)
         {
             Vector3 vert =  new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
             vert.Scale(new Vector3(scale,scale,scale));
@@ -270,10 +301,11 @@ public class DualContouring3D : MonoBehaviour
                 vert += offset; 
             }
             //if scale 1 do nothing
-            // return vert;
-        }else{
-            return new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
+            return vert;
         }
+        //else{
+        //    return new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
+        //}
         threshold*= threshold;
         Vector3 vec = new Vector3(x, y, z);
         float[,,] edges = new float[2, 2, 2];
@@ -390,7 +422,7 @@ public class DualContouring3D : MonoBehaviour
     {
         //v0 and v1 are numbers of opposite sign. This returns how far you need to interpolate from v0 to v1 to get to 0
         //assert((v1 > 0) != (v0 > 0));
-        if (notAdaptive)
+        if (!isAdaptive)
         {
             return 0.5f;
         }
@@ -445,7 +477,7 @@ public class DualContouring3D : MonoBehaviour
             //Boolean
             // return grid[x,y,z];
             
-            return sdfgrid[x,y,z] <= 0 || y < floor;
+            return sdfgrid[x,y,z] <= contour;
         // }else{
         //     if( sdConeExact(new Vector3(x,y,z), new Vector2(0.5f, 0.5f), 5) < 0 ){
         //         return true;
@@ -457,24 +489,34 @@ public class DualContouring3D : MonoBehaviour
         
     }
 
-    public bool add_single(Vector3 coord, int material){
+
+    internal bool remove(Vector3 place)
+    {
+        throw new NotImplementedException();
+    }
+
+
+    public bool add_single(Vector3 coord, int material,bool remove=false){
         //adjust to scale
         coord.x /=scale;
         coord.y /=scale;
         coord.z /=scale;
+        sbyte change =-1;
+        if(remove)change=1;
+        
         if(checkPosBounds(coord)){
             coord.x +=Math.Abs(offset.x);
             coord.y +=Math.Abs(offset.y);
             coord.z +=Math.Abs(offset.z);
             
             //Star
-            sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y) , Math.Abs((int)coord.z)]=-1;
-            sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y) , Math.Abs((int)coord.z)+1]=-1;
-            sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y) , Math.Abs((int)coord.z)-1]=-1;
-            sdfgrid[Math.Abs((int)coord.x)-1, Math.Abs((int)coord.y) , Math.Abs((int)coord.z)]=-1;
-            sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y)+1 , Math.Abs((int)coord.z)]=-1;
-            sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y)-1 , Math.Abs((int)coord.z)]=-1;
-            sdfgrid[Math.Abs((int)coord.x)+1, Math.Abs((int)coord.y) , Math.Abs((int)coord.z)]=-1;
+            sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y) , Math.Abs((int)coord.z)]= change;
+            sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y) , Math.Abs((int)coord.z)+1]= change;
+            sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y) , Math.Abs((int)coord.z)-1]=change;
+            sdfgrid[Math.Abs((int)coord.x-1), Math.Abs((int)coord.y) , Math.Abs((int)coord.z)]=change;
+            sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y)+1 , Math.Abs((int)coord.z)]=change;
+            sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y-1) , Math.Abs((int)coord.z)]=change;
+            sdfgrid[Math.Abs((int)coord.x)+1, Math.Abs((int)coord.y) , Math.Abs((int)coord.z)]=change;
             generateVertices(defAngle, defHeight);
             return true;
         }
@@ -592,34 +634,39 @@ public class DualContouring3D : MonoBehaviour
             for (int y = 1; y <= areaSize; y++)
             {
                 for (int z = 0; z <= areaSize; z++){
-                    if(sdfgrid[x,y,z] < 1){
-                         if(!(sdfgrid[x,y-1,z] < 1)){
+                    if(sdfgrid[x,y,z] < 0){
+                         if(!(sdfgrid[x,y-1,z] < 0)){
                             //no ground
                             sdfgrid[x,y-1,z] = sdfgrid[x,y,z];
                             sdfgrid[x,y,z] = 2;
-                        }else if(!(sdfgrid[x+1,y-1,z] < 1)){
+
+//                            vertices
+                        }else if(!(sdfgrid[x+1,y-1,z] < 0)){
 
                             sdfgrid[x+1,y-1,z] = sdfgrid[x,y,z];;
                             sdfgrid[x,y,z] = 2;
-                        }else if(x!=0 && !(sdfgrid[x-1,y-1,z] < 1)){
+                        }else if(x!=0 && !(sdfgrid[x-1,y-1,z] < 0)){
 
                             sdfgrid[x-1,y-1,z] = sdfgrid[x,y,z];;
                             sdfgrid[x,y,z] = 2;
-                        }else if(!(sdfgrid[x,y-1,z+1] < 1)){
+                        }else if(!(sdfgrid[x,y-1,z+1] < 0)){
 
                             sdfgrid[x,y-1,z+1] = sdfgrid[x,y,z];;
                             sdfgrid[x,y,z] = 2;
-                        }else if(x!=0 && z !=0 && !(sdfgrid[x-1,y-1,z-1] < 1)){
-
+                        }else if(x!=0 && z !=0 && !(sdfgrid[x-1,y-1,z-1] < 0)){
                             sdfgrid[x-1,y-1,z-1] = sdfgrid[x,y,z];;
                             sdfgrid[x,y,z] = 2;
-                        }else if( y==0 || sdfgrid[x,y-1,z] < 1 ){
+                            //maybe change < 0 to < contour?
+                        }else if( y==0 || sdfgrid[x,y-1,z] < 0 ){
                             //ground below
                         }
                     }
                         // flag=1;
                 }
             }
+        }
+        if(isPrettygravity){
+            generateVertices(defAngle,defHeight);
         }
     }
     

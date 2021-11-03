@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections;
-
 public class CameraControl : MonoBehaviour
 {
     /*
@@ -24,6 +23,7 @@ public class CameraControl : MonoBehaviour
 
     public SandManager sandManager;
     private Camera cam;
+    //Material
     private int selected=0;
 
     private void Start()
@@ -55,15 +55,15 @@ public class CameraControl : MonoBehaviour
         }
 
         if (Input.GetKey(KeyCode.UpArrow)){
-            selected +=1;
-            if (selected ==4)selected=0;
-            sandManager.changeMode("single");
+            sandManager.changeMode(SandManager.modes.SINGLE);
         }
         
         if (Input.GetKey(KeyCode.DownArrow)){
-            selected +=1;
-            if (selected ==4)selected=0;
-            sandManager.changeMode("cone");
+            sandManager.changeMode(SandManager.modes.CONE);
+        }
+        
+        if (Input.GetKey(KeyCode.DownArrow)){
+            sandManager.changeMode(SandManager.modes.REMOVE);
         }
         //Move cones old object oriented way
         // for(int i=0; i < generator.GetComponent<DualContouring3D>().cones.Count;i++){

@@ -9,6 +9,8 @@ public static class Bodies
     public static string[] sandname= {"sandDry", "sandWaterStart", "sandWaterEnd","sandWet"};
     public static float[] sands= { 0.56f, 0.26f, 0.5f,0.7f};
 
+    //Credit  iquilezles
+    //https://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
     static public float sdConeShort(Vector3 p, Vector2 c, float h)
     {
         float q = (float)Math.Sqrt(p.x * p.x + p.z * p.z);
@@ -73,65 +75,7 @@ public static class Bodies
         return Mathf.Sin(Mathf.PI * Mathf.PerlinNoise(a, b));
     }
 
-    /** Credit @https://stackoverflow.com/questions/10768142/verify-if-point-is-inside-a-cone-in-3d-space
-    * @param x coordinates of point to be tested 
-    * @param t coordinates of apex point of cone
-    * @param b coordinates of center of basement circle
-    * @param aperture in radians
-        Maybe move into cone
-    */
-    static public bool isLyingInCone(float[] x, float[] t, float[] b,
-                                         float aperture)
-    {
-        // This is for our convenience
-        float halfAperture = aperture / 2.0f;
-        // Vector pointing to X point from apex
-        float[] apexToXVect = dif(t, x);
-        // Vector pointing from apex to circle-center point.
-        float[] axisVect = dif(t, b);
-        // X is lying in cone only if it's lying in 
-        // infinite version of its cone -- that is, 
-        // not limited by "round basement".
-        // We'll use dotProd() to 
-        // determine angle between apexToXVect and axis.
-        bool isInInfiniteCone = dotProd(apexToXVect, axisVect)
-                                / magn(apexToXVect) / magn(axisVect)
-                                    >
-                                // We can safely compare cos() of angles 
-                                // between vectors instead of bare angles.
-                                Math.Cos(halfAperture);
-        if (!isInInfiniteCone) return false;
-
-        // X is contained in cone only if projection of apexToXVect to axis
-        // is shorter than axis. 
-        // We'll use dotProd() to figure projection length.
-        bool isUnderRoundCap = dotProd(apexToXVect, axisVect)
-                                / magn(axisVect)
-                                    <
-                                magn(axisVect);
-        return isUnderRoundCap;
-    }
-
-    static public float dotProd(float[] a, float[] b)
-    {
-        return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-    }
-
-    static public float[] dif(float[] a, float[] b)
-    {
-        return (new float[]{
-                a[0]-b[0],
-                a[1]-b[1],
-                a[2]-b[2]
-        });
-    }
-
-    static public float magn(float[] a)
-    {
-        return (float)(Math.Sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]));
-    }
-
-    
+   
 
     static public float ball_function(float x, float y, float z)
     {

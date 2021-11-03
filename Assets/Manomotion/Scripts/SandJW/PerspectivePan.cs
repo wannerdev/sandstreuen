@@ -15,7 +15,7 @@ public class PerspectivePan : MonoBehaviour {
         if (SystemInfo.deviceType == DeviceType.Desktop)
         {
             FixedJoystick[] k = this.GetComponentsInChildren<FixedJoystick>();
-            if(k !=null){
+            if(k !=null && k.Length>0){
                 // popUp1 = GameObject.FindWithTag (tagName);
                 //Move UI out of camera, disabling doesn't work
                 Vector3 currentPosition = k[0].transform.localPosition;

@@ -160,7 +160,7 @@ MonoBehaviour:
   scale: 1
   contour: 0
   isGravity: 1
-  isPrettygravity: 0
+  isPretty: 0
   startwith: 2
 --- !u!4 &16948155
 Transform:
@@ -480,7 +480,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 2
+  m_UiScaleMode: 0
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 800, y: 600}
@@ -949,7 +949,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dc3D: {fileID: 16948154}
   uimanager: {fileID: 263356275}
-  modeVal: 0
+  mode: 0
   coneAngle: 0
 --- !u!4 &965858487
 Transform:
@@ -1140,7 +1140,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Material:'
+  m_Text: Material:SandDry
 --- !u!1001 &1050929054
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1527,7 +1527,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1766012478371086, guid: f5ada212b3b98412ea46723d2f7d7fac, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4847990393229850, guid: f5ada212b3b98412ea46723d2f7d7fac, type: 3}
       propertyPath: m_RootOrder
@@ -1726,7 +1726,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Place koord:
+  m_Text: 'Place coord:
 
 '
 --- !u!222 &1329433773
@@ -1788,7 +1788,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Mode:SandDry
+  m_Text: Mode:CONE
 --- !u!222 &1332008578
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1867,7 +1867,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'depth:
+  m_Text: 'Depth:
 
 '
 --- !u!222 &1424805862
@@ -2223,7 +2223,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Camera koord:
+  m_Text: 'Camera coord:
 
 '
 --- !u!222 &1956962319

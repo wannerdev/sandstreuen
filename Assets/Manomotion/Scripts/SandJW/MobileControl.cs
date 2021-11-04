@@ -15,13 +15,13 @@ public class MobileControl : MonoBehaviour {
         if (SystemInfo.deviceType == DeviceType.Desktop)
         {
             FixedJoystick[] k = this.GetComponentsInChildren<FixedJoystick>();
-            if(k !=null && k.Length>0){
+            if(k !=null && k.Length<=1){
                 // popUp1 = GameObject.FindWithTag (tagName);
                 //Move UI out of camera, disabling doesn't work
                 Vector3 currentPosition = k[0].transform.localPosition;
-                k[0].transform.localPosition = new Vector3 (1000, 1000);
+                k[0].transform.localPosition = new Vector3 (2000, 2000);
                 Vector3 currentPosition2 = k[1].transform.localPosition;
-                k[1].transform.localPosition = new Vector3 (1000, 1000);
+                k[1].transform.localPosition = new Vector3 (2000, 2000);
             }
             this.moveJoystick.enabled = false;
             this.rotateJoystick.enabled = false;

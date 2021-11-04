@@ -40,10 +40,13 @@ public class Interactable : MonoBehaviour
         if(ManomotionManager.Instance != null){
             HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
             
-            uimanager.depth.text = "depth:"+detectedHand.tracking_info.depth_estimation+" ";
+            uimanager.depth.text = "Depth:"+(int)(detectedHand.tracking_info.depth_estimation*10)+
+                ":"+detectedHand.gesture_info.mano_class+
+                ","+detectedHand.gesture_info.mano_gesture_trigger;
         
 
             //The click happens when I perform the Click Gesture : Open Pinch -> Closed Pinch -> Open Pinch 
+            // if(detectedHand.gesture_info.mano_class == ManoClass.POINTER_GESTURE){
             if (detectedHand.gesture_info.mano_gesture_trigger == ManoGestureTrigger.CLICK)
             {
                 
@@ -85,12 +88,12 @@ public class Interactable : MonoBehaviour
         if(ManomotionManager.Instance != null){
             //All the information of the hand
             HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
-
-            if (detectedHand.gesture_info.mano_gesture_continuous == ManoGestureContinuous.POINTER_GESTURE)
+            // if(detectedHand.gesture_info.mano_class == ManoClass.POINTER_GESTURE){
+            // if (detectedHand.gesture_info.mano_gesture_continuous == ManoGestureContinuous.POINTER_GESTURE)
+            if (detectedHand.gesture_info.mano_gesture_trigger == ManoGestureTrigger.GRAB_GESTURE)
             {
                 // flag=1;
                 //Logic that should happen when I click
-            
                 selected +=1;
                 if (selected ==40)selected=0;
                 uimanager.changeMaterial(selected/10);

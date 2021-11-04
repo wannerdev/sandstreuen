@@ -116,7 +116,7 @@ public class DualContouring3D : MonoBehaviour
                     for ( int j = 0; j < (areaSize +2);j++ ) {
                         for ( int k = 0; k <(areaSize +2);k++ ) {
                             if (j<floor){ 
-                                sdfgrid[i,j,k] = -1;
+                                sdfgrid[i,j,k] = -1+Math.Abs(j)*-1;
                             }else{
                                 sdfgrid[i,j,k] = 1+Math.Abs(j);
                             }

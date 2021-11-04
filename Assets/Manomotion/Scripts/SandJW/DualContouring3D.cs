@@ -14,7 +14,9 @@ public class DualContouring3D : MonoBehaviour
     public float scale; //1
     public float contour; //0
     public bool isGravity; //true
+    public bool isConeOptimized; //true
     public bool isPretty; //false very expensive, with some optimization should be runnable
+    public bool isCheapPretty; //false very expensive, with some optimization should be runnable
     private bool addedFlag; //when to recalculate vertices 
     
     
@@ -58,7 +60,9 @@ public class DualContouring3D : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
+        if(scale != 1){
+            isAdaptive=false;
+        }
         //Move  0,0,0 in the middle
         this.transform.position -= new Vector3(areaSize/2,0,areaSize/2);
         offset = gameObject.transform.position;
@@ -411,8 +415,8 @@ public class DualContouring3D : MonoBehaviour
 
         // changes.Count
         float count = changes.Count;
-        //opensource repo
-        //https://github.com/theSoenke/ProceduralTerrain/blob/master/Assets/ProceduralTerrain/Core/Scripts/Voxel/Meshing/DualControuringUniform.cs
+        //Schmitz adaptivity integrated of opensource repo
+        //
         // start mass point
         // calculated by mean of intersection points
         Vector3 c = new Vector3();
@@ -510,19 +514,19 @@ public class DualContouring3D : MonoBehaviour
 
 
     public bool add_single(Vector3 coord, int material,bool remove=false){
-        //Adjust to scale
-        coord.x /=scale;
-        coord.y /=scale;
-        coord.z /=scale;
+       
         sbyte change =-1;
         if(remove)change=1;
         
         addedFlag=true;
         if(checkPosBounds(coord)){
-            coord.x +=Math.Abs(offset.x);
-            coord.y +=Math.Abs(offset.y);
-            coord.z +=Math.Abs(offset.z);
-            
+            if(scale!= 1){
+                coord=scaleCoordToIndex(coord);
+            }else{
+                coord.x +=Math.Abs(offset.x);
+                coord.y +=Math.Abs(offset.y);
+                coord.z +=Math.Abs(offset.z);
+            }
             //Star
             sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y) , Math.Abs((int)coord.z)]= change;
             sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y) , Math.Abs((int)coord.z)+1]= change;
@@ -531,10 +535,27 @@ public class DualContouring3D : MonoBehaviour
             sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y)+1 , Math.Abs((int)coord.z)]=change;
             sdfgrid[Math.Abs((int)coord.x), Math.Abs((int)coord.y-1) , Math.Abs((int)coord.z)]=change;
             sdfgrid[Math.Abs((int)coord.x)+1, Math.Abs((int)coord.y) , Math.Abs((int)coord.z)]=change;
-            // generateVertices(coord,defAngle, defHeight);
+            //if( isAdaptive)generateVertices(coord,defAngle, defHeight);
+            if( isAdaptive)generateVertices(defAngle, defHeight);
             return true;
         }
         return false;
+    }
+
+    private Vector3 scaleCoordToIndex(Vector3 coord)
+    { 
+        Camera cam = GameObject.FindObjectOfType<Camera>();
+        coord -= cam.transform.forward;
+        //Adjust to scale
+        coord.x /=scale;
+        coord.y /=scale;
+        coord.z /=scale;
+        coord += cam.transform.forward/scale;
+
+        coord.x -=offset.x*scale;
+        coord.y -=offset.y*scale;
+        coord.z -=offset.z*scale;
+        return coord;
     }
 
     public bool add_cone(Vector3 coord, float height, int material)
@@ -546,44 +567,52 @@ public class DualContouring3D : MonoBehaviour
         Vector2 angle = new Vector2((float)Math.Sin(aperture),(float) Math.Cos(aperture));
         bool success = true;
         
-        //Simplification(wrong): no cone has a bigger circumference than its height
         //index of  0,0,0
         // 40,0,40
         Vector3 index = new Vector3(areaSize/2,0,areaSize/2);
         index += coord;
-
-        //Optimization attempt
-        float xStart = index.x-height-10-1/aperture;
-        float yStart = index.y-height-5-1/aperture; 
-        float zStart = index.z-height-10-1/aperture;
-                
-        float xEnd = index.x+height+10+1/aperture;
-        float yEnd = index.y+height+5+1/aperture;
-        float zEnd = index.z+height+10+1/aperture;
-        //optimize by limiting for loops by cones more exact dimension
-        //http://mathcentral.uregina.ca/QQ/database/QQ.09.07/s/marija1.html
-        // if(coord.y+height < areaSize) yLimit= coord.y+height;
-        // double diameter = 2*height *Math.Tan(aperture);
-        // if(coord.x+diameter < areaSize) xLimit=coord.x+ diameter;
-        // if(coord.z+diameter < areaSize) zLimit= coord.z+diameter;
-
-        if(xStart <0)xStart=0;
-        if(yStart <0)yStart=0;
-        if(zStart <0)zStart=0;
-
-
-        if(xEnd >areaSize)xEnd=areaSize;
-        if(yEnd >areaSize)yEnd=areaSize;
-        if(zEnd >areaSize)zEnd=areaSize;
-
-        // Debug.Log("Optimizationlogs: ");        
-        // Debug.Log(xStart );
-        // Debug.Log(yStart );
-        // Debug.Log(zStart );
-        // Debug.Log(xEnd );
-        // Debug.Log(yEnd );
-        // Debug.Log(zEnd );        
         
+        float xStart=0;
+        float yStart=0;
+        float zStart=0;
+        float xEnd=areaSize;
+        float yEnd=areaSize;
+        float zEnd=areaSize;
+        
+        if(isConeOptimized){
+            //Simplification(wrong): no cone has a bigger circumference than its height
+        
+            //Optimization attempt
+            xStart = (index.x-height-10-1/aperture);//*scale;
+            yStart = (index.y-height-5-1/aperture) ;//*scale; 
+            zStart = (index.z-height-10-1/aperture);//*scale;
+            xEnd =   (index.x+height+10+1/aperture);///scale;
+            yEnd =   (index.y+height+5+1/aperture) ;///scale;
+            zEnd =   (index.z+height+10+1/aperture);///scale;
+            //optimize by limiting for loops by cones more exact dimension
+            //http://mathcentral.uregina.ca/QQ/database/QQ.09.07/s/marija1.html
+            // if(coord.y+height < areaSize) yLimit= coord.y+height;
+            // double diameter = 2*height *Math.Tan(aperture);
+            // if(coord.x+diameter < areaSize) xLimit=coord.x+ diameter;
+            // if(coord.z+diameter < areaSize) zLimit= coord.z+diameter;
+
+            if(xStart <0)xStart=0;
+            if(yStart <0)yStart=0;
+            if(zStart <0)zStart=0;
+
+            if(xEnd >areaSize)xEnd=areaSize;
+            if(yEnd >areaSize)yEnd=areaSize;
+            if(zEnd >areaSize)zEnd=areaSize;
+        
+
+            // Debug.Log("Optimizationlogs: ");        
+            // Debug.Log(xStart );
+            // Debug.Log(yStart );
+            // Debug.Log(zStart );
+            // Debug.Log(xEnd );
+            // Debug.Log(yEnd );
+            // Debug.Log(zEnd );        
+        }
 
         for (float x =xStart; x <=  xEnd; x=x+scale) 
         {
@@ -607,14 +636,19 @@ public class DualContouring3D : MonoBehaviour
                         index = new Vector3(x,y,z);
                         // Debug.Log("in Cone at " + index.ToString());
                         // i don't want to scale offset
-                        index += offset;
-                        index.x /=scale;
-                        index.y /=scale;
-                        index.z /=scale;
-                        index -= offset;
+                        
+                        if(scale!= 1){
+                            index += offset;
+                            index.x /=scale;
+                            index.y /=scale;
+                            index.z /=scale;
+                            index -= offset;
+                        
+                            // index=scaleCoordToIndex(index);
+                        }
                         // Debug.Log("Index:"+(int)(index.x)+" "+(int)(index.y)+" "+ (int)(index.z));
                         sdfgrid[(int)(index.x),(int)(index.y), (int)(index.z)] = cache;
-
+                        
                         // index.x +=Math.Abs(offset.x*scale);
                         // index.y +=Math.Abs(offset.y*scale);
                         // index.z +=Math.Abs(offset.z*scale);
@@ -627,7 +661,8 @@ public class DualContouring3D : MonoBehaviour
                 }
             }
         }
-        // generateVertices(angle,height);
+        //if( isAdaptive)generateVertices(coord,angle, height);
+        if( isAdaptive)generateVertices(angle, height);
         // Debug.Log("Is flag "+flag);
         // flag=0;
         return success;
@@ -661,7 +696,7 @@ public class DualContouring3D : MonoBehaviour
         }
         if(isPretty){
             generateVertices(defAngle,defHeight);
-        }else if( Time.frameCount%30 ==0 && addedFlag){
+        }else if( isCheapPretty && Time.frameCount%30 ==0 && addedFlag){
             //use a general cone to render the sdfgrid prettier
             generateVertices(defAngle,defHeight);
             addedFlag=false;
@@ -677,8 +712,8 @@ public class DualContouring3D : MonoBehaviour
             for (int y = 1; y <= areaSize; y++)
             {
                 for (int z = 0; z <= areaSize; z++){
-                    if(sdfgrid[x,y,z] < 0){
-                         if(!(sdfgrid[x,y-1,z] < 0)){
+                    if(sdfgrid[x,y,z] < 0){ //isSand / Matter
+                        if(!(sdfgrid[x,y-1,z] < 0)){
                             //No ground
                             sdfgrid[x,y-1,z] = sdfgrid[x,y,z];
                             sdfgrid[x,y,z] = 2;
@@ -687,7 +722,7 @@ public class DualContouring3D : MonoBehaviour
                             //vertexGrid
                             // vertexGrid[x,y-1,z] = vertexGrid[x,y,z];
                             // vertexGrid[x,y,z] = new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
-                        }else if(!(sdfgrid[x+1,y-1,z] < 0)){
+                        }else if(sdfgrid[x+1,y-1,z] > 0 && (sdfgrid[x,y+1,z] > 0) ){ 
 
                             sdfgrid[x+1,y-1,z] = sdfgrid[x,y,z];;
                             sdfgrid[x,y,z] = 2;
@@ -695,7 +730,7 @@ public class DualContouring3D : MonoBehaviour
 
                             // vertexGrid[x+1,y-1,z] = vertexGrid[x,y,z];
                             // vertexGrid[x,y,z] = new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
-                        }else if(x!=0 && !(sdfgrid[x-1,y-1,z] < 0)){
+                        }else if(x!=0 && !(sdfgrid[x-1,y-1,z] < 0) && (sdfgrid[x,y+1,z] > 0)){
 
                             sdfgrid[x-1,y-1,z] = sdfgrid[x,y,z];;
                             sdfgrid[x,y,z] = 2;
@@ -703,7 +738,7 @@ public class DualContouring3D : MonoBehaviour
                             addedFlag=true;
                             // vertexGrid[x-1,y-1,z] = vertexGrid[x,y,z];
                             // vertexGrid[x,y,z] = new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
-                        }else if(!(sdfgrid[x,y-1,z+1] < 0)){
+                        }else if(!(sdfgrid[x,y-1,z+1] < 0) && (sdfgrid[x,y+1,z] > 0)){
 
                             sdfgrid[x,y-1,z+1] = sdfgrid[x,y,z];;
                             sdfgrid[x,y,z] = 2;
@@ -711,7 +746,7 @@ public class DualContouring3D : MonoBehaviour
                             addedFlag=true;
                             // vertexGrid[x,y-1,z+1] = vertexGrid[x,y,z];
                             // vertexGrid[x,y,z] = new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
-                        }else if(x!=0 && z !=0 && !(sdfgrid[x-1,y-1,z-1] < 0)){
+                        }else if(x!=0 && z !=0 && !(sdfgrid[x-1,y-1,z-1] < 0) && (sdfgrid[x,y+1,z] > 0)){
                             sdfgrid[x-1,y-1,z-1] = sdfgrid[x,y,z];;
                             sdfgrid[x,y,z] = 2;
 
@@ -720,9 +755,10 @@ public class DualContouring3D : MonoBehaviour
                             // vertexGrid[x,y,z] = new Vector3(x + 0.5f, y + 0.5f, z + 0.5f);
                             //maybe change < 0 to < contour?
                         }
-                        ////else if( y==0 || sdfgrid[x,y-1,z] < 0 ){
+                        /* else if( y==0 || sdfgrid[x,y-1,z] < 0 ){
                             //ground below do nothing
-                        //}
+                        } */
+                        ////
                     }
                         // flag=1;
                 }

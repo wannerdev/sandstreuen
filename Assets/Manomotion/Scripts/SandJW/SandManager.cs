@@ -6,66 +6,86 @@ using UnityEngine;
 public class SandManager : MonoBehaviour
 {
     
-    // JWUIManager uimanager = uimanager.GetComponent<JWUIManager>();
+    public enum modes{CONE, SINGLE, REMOVE,GROW};
+    public modes mode;
     public DualContouring3D dc3D;
     public JWUIManager uimanager;
-    public modes mode;
     public Bodies.types coneAngle;// select;
-    public enum modes{CONE, SINGLE, REMOVE};
+    public bool isRotateSetting;
+    private Vector3 placeCache;
+    private float cacheheight;
 
     void Start()
     {
-         mode= modes.CONE;
-         uimanager.changeMode("cone");
-         coneAngle=Bodies.types.SANDDRY;
-         dc3D = dc3D.GetComponent<DualContouring3D>();
+        // isRotateSetting = false;
+        dc3D = dc3D.GetComponent<DualContouring3D>();
+        if(dc3D.scale != 1){
+            mode =modes.SINGLE;
+            uimanager.changeMode("single");
+        }else{
+            mode= modes.CONE;
+            uimanager.changeMode("cone");
+        }
+        cacheheight=5; //used for grow
+        coneAngle=Bodies.types.SANDDRY;
     }
 
     public void add(Vector3 place,  int selected,float height=5 )
     {
-        if( mode == modes.CONE){
-            if(dc3D.add_cone(place, height, selected)){
-                dc3D.regenerateMesh();
-                uimanager.resetWarning();
-                uimanager.conePosition(place);
-            }else{
-                uimanager.warnOutside();
-            }
-        }else if( mode == modes.REMOVE){
-            if(dc3D.add_single(place,selected,true)){
-                dc3D.regenerateMesh();
-                uimanager.resetWarning();
-                uimanager.conePosition(place);
-            }else{
-                uimanager.warnOutside();
-            }
-        }else if( mode == modes.SINGLE){
-            if(dc3D.add_single(place, selected)){
-                dc3D.regenerateMesh();
-                uimanager.resetWarning();
+        bool isAdded=false;
+        switch(mode){
+            case modes.CONE:
+                isAdded = dc3D.add_cone(place, height, selected);
+                break;
                 
-                // place.x +=Math.Abs(d3D.offset.x);
-                // place.y +=Math.Abs(d3D.offset.y);
-                // place.z +=Math.Abs(d3D.offset.z);
-                uimanager.conePosition(place);
-            }else{
-                uimanager.warnOutside();
-            }
+            case modes.REMOVE:
+                isAdded = dc3D.add_single(place,selected,true);
+                break;
+                
+            case modes.GROW:
+                if(place == placeCache){
+                    cacheheight+=0.5f;
+                }else{
+                    cacheheight=height;
+                }
+                placeCache = place;
+
+                place.y=cacheheight;
+                isAdded = dc3D.add_cone(place,cacheheight,selected);
+                break;
+
+            case modes.SINGLE:
+                isAdded = dc3D.add_single(place, selected);
+                break;
+        }
+        if(isAdded){
+            dc3D.regenerateMesh();
+            uimanager.resetWarning();
+            uimanager.conePosition(place);
+        }else{
+            uimanager.warnOutside();
         }
     }
 
+    public void changeRotating(){
+        isRotateSetting = !isRotateSetting;
+    }
 
     public void changeMode(bool plus){
-        if(plus){
-        this.mode = this.mode+1;
+        if(dc3D.scale !=1){ //Disable cone mode if scaled
+            mode = modes.REMOVE == mode ? modes.SINGLE : modes.REMOVE; 
+        }else{
+            if(plus){
+            this.mode = this.mode+1;
+            }
+            else{
+                this.mode = this.mode-1;
+            }
+            if(mode<0)mode = modes.GROW;
+            if(((int)mode)>3)mode = modes.CONE;
         }
-        else{
-            this.mode = this.mode-1;
-        }
-        if(mode<0)mode=modes.REMOVE;
-        if(((int)mode)>2)mode=modes.CONE;
-
         uimanager.changeMode(mode.ToString());
+        
     }
     public void changeMaterial(int selected){
         uimanager.changeMaterial(selected);

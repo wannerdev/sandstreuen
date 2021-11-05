@@ -415,8 +415,10 @@ public class DualContouring3D : MonoBehaviour
 
         // changes.Count
         float count = changes.Count;
-        //Schmitz adaptivity integrated of opensource repo
-        //
+        //Adapted from MIT based repository
+        //https://github.com/voxelbased/core/blob/main/Assets/Voxelbased/Core/Voxel/Meshing/DualContouring/DualContouringUniform.cs
+        //  
+
         // start mass point
         // calculated by mean of intersection points
         Vector3 c = new Vector3();

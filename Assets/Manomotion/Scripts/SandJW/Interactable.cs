@@ -90,7 +90,7 @@ public class Interactable : MonoBehaviour
             {
                 flipL = "open";
                 
-                sandManager.changeMode(false);
+                sandManager.changeMode(true);
             }else if (detectedHand.gesture_info.mano_gesture_continuous == ManoGestureContinuous.CLOSED_HAND_GESTURE && flipL=="open")
             {
                 flipL = "closed";

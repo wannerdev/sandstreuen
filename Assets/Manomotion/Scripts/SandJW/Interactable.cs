@@ -38,7 +38,7 @@ public class Interactable : MonoBehaviour
         //DetectHandGestureTap();
         //DetectHandGestureWave();
         DetectHandGestureClick();
-        // DetectHandGestureTap();
+        DetectHandGestureClosed();
         
         DetectPalmSwitchL();
         // DetectPalmSwitchR();
@@ -79,23 +79,21 @@ public class Interactable : MonoBehaviour
 
     private void DetectPalmSwitchL()
     {
-
         //All the information of the hand
         if(ManomotionManager.Instance != null){
             HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
         
-
             // if(detectedHand.gesture_info.mano_class == ManoClass.POINTER_GESTURE){
-            if (detectedHand.gesture_info.mano_gesture_continuous == ManoGestureContinuous.OPEN_HAND_GESTURE && flipL=="closed" )
+            if (detectedHand.gesture_info.hand_side == HandSide.Palmside && flipL=="closed" )
             {
                 flipL = "open";
                 
                 sandManager.changeMode(true);
-            }else if (detectedHand.gesture_info.mano_gesture_continuous == ManoGestureContinuous.CLOSED_HAND_GESTURE && flipL=="open")
+            }else if (detectedHand.gesture_info.hand_side == HandSide.Backside && flipL=="open")
             {
                 flipL = "closed";
                 
-                sandManager.changeMode(true);
+                sandManager.changeMode(false );
             }
         }
     }
@@ -150,23 +148,22 @@ public class Interactable : MonoBehaviour
 
     }
 
-    // //Tap 
-    // void DetectHandGestureTap()
-    // {
-    //     if(ManomotionManager.Instance != null){
-    //         //All the information of the hand
-    //         HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
-    //         if (detectedHand.gesture_info.mano_class == ManoClass.POINTER_GESTURE && detectedHand.gesture_info.mano_gesture_continuous ==  ManoGestureContinuous.POINTER_GESTURE)
-    //         {
-    //             // flag=1;
-    //             //Logic that should happen when I click
-    //             selected +=1;
-    //             if (selected ==40)selected=0;
-    //             sandManager.changeMaterial(selected/10);
-    //         }
-    //     }
-
-    // }
+    //Change material
+    void DetectHandGestureClosed()
+    {
+        if(ManomotionManager.Instance != null){
+            //All the information of the hand
+            HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
+            if (detectedHand.gesture_info.mano_gesture_continuous == ManoGestureContinuous.CLOSED_HAND_GESTURE )
+            {
+                // flag=1;
+                //Logic that should happen when I click
+                selected +=1;
+                if (selected ==40)selected=0;
+                sandManager.changeMaterial(selected/10);
+            }
+        }
+    }
 
     void HighlightEdgeWarning(Warning warning)
 	 {
@@ -265,8 +262,5 @@ public class Interactable : MonoBehaviour
 	/// <summary>
 	/// Visually illustrated the users hand approaching the edges of the screen
 	/// </summary>
-	// /// <param name="warning"></param>
-
-
-    
+	// /// <param name="warning"></param>    
 }

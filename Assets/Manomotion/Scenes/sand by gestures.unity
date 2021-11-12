@@ -160,9 +160,9 @@ MonoBehaviour:
   scale: 1
   contour: 0
   isGravity: 1
-  isConeOptimized: 0
+  isConeOptimized: 1
   isPretty: 0
-  isCheapPretty: 0
+  isCheapPretty: 1
   startwith: 1
 --- !u!4 &16948155
 Transform:
@@ -299,14 +299,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 198646371}
-  m_LocalRotation: {x: -0.10190915, y: -0.64281017, z: -0.08685423, w: 0.7542321}
-  m_LocalPosition: {x: 4, y: 2, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 4, y: 2, z: -2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 263356271}
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: -15.39, y: -80.88, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &198646375
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1033,7 +1033,7 @@ MonoBehaviour:
   dc3D: {fileID: 16948154}
   uimanager: {fileID: 263356275}
   coneAngle: 0
-  isRotateSetting: 0
+  isRotateSetting: 1
 --- !u!4 &965858487
 Transform:
   m_ObjectHideFlags: 0

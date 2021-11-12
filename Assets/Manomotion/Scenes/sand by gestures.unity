@@ -155,7 +155,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   material: {fileID: 2100000, guid: 983e0992e19cd6b488952f5565ef1372, type: 2}
   areaSize: 80
-  isAdaptive: 0
+  isAdaptive: 1
   floor: 0
   scale: 1
   contour: 0
@@ -1066,7 +1066,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!64 &971718250
 MeshCollider:
   m_ObjectHideFlags: 0

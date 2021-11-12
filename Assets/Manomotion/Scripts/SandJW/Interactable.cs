@@ -16,7 +16,7 @@ public class Interactable : MonoBehaviour
     private bool wave2;
     private string flipL;
     private string flipR;
-    private int flag;
+    private int flag, outofsight;
     private float rotX,rotY,rotZ;
     // private float palmCY;
     private bool isDown;
@@ -26,7 +26,7 @@ public class Interactable : MonoBehaviour
         flag=0;
         uimanager = uimanager.GetComponent<JWUIManager>();
 		// ManomotionManager.OnManoMotionFrameProcessed += HandleManoMotionFrameUpdated;
-        flipL = "";
+        flipL = "closed";
         flipR = "";
         // palmCY=0;
         isDown = false;
@@ -38,10 +38,8 @@ public class Interactable : MonoBehaviour
         //DetectHandGestureTap();
         //DetectHandGestureWave();
         DetectHandGestureClick();
-        DetectHandGestureClosed();
-        
+        DetectHandGestureClosed();        
         DetectPalmSwitchL();
-        // DetectPalmSwitchR();
         if(sandManager.isRotateSetting){
             rotate();        
         }
@@ -60,10 +58,17 @@ public class Interactable : MonoBehaviour
             // if( detectedHand.gesture_info.mano_class != ManoClass.NO_HAND && detectedHand.tracking_info.bounding_box.top_left.y-detectedHand.tracking_info.bounding_box.height <= 0 ){
             //       rotX +=1;
             // };
-            if(isDown || detectedHand.tracking_info.palm_center.y  < 0.3 ){
+           if(isDown || detectedHand.tracking_info.palm_center.y  < 0.3 ){//&&  //!(detectedHand.tracking_info.palm_center.y  < 0.6) ){
                 isDown =true;
                 rotX +=1;
+            } 
+            if(detectedHand.gesture_info.mano_class == ManoClass.NO_HAND ){
+                outofsight++;
+            }else{                
+                outofsight=0;
             }
+            if ( rotX >= 5 )rotX=5;
+            if ( outofsight >= 10 )rotX=0;
             // palmCY = detectedHand.tracking_info.palm_center.y;
             HighlightEdgeWarning(warning);
             //rotation            
@@ -84,16 +89,15 @@ public class Interactable : MonoBehaviour
             HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
         
             // if(detectedHand.gesture_info.mano_class == ManoClass.POINTER_GESTURE){
-            if (detectedHand.gesture_info.hand_side == HandSide.Palmside && flipL=="closed" )
+            if (detectedHand.gesture_info.hand_side == HandSide.Palmside )
             {
                 flipL = "open";
                 
-                sandManager.changeMode(true);
             }else if (detectedHand.gesture_info.hand_side == HandSide.Backside && flipL=="open")
             {
                 flipL = "closed";
                 
-                sandManager.changeMode(false );
+                sandManager.changeMode(true);
             }
         }
     }
@@ -154,6 +158,7 @@ public class Interactable : MonoBehaviour
         if(ManomotionManager.Instance != null){
             //All the information of the hand
             HandInfo detectedHand = ManomotionManager.Instance.Hand_infos[0].hand_info;
+            //detectedHand.gesture_info.mano_class == Manoc
             if (detectedHand.gesture_info.mano_gesture_continuous == ManoGestureContinuous.CLOSED_HAND_GESTURE )
             {
                 // flag=1;

@@ -21,7 +21,7 @@ public class DualContouring3D : MonoBehaviour
     
     
     // isWithCone start with Cone
-    // someNoise  not really functional but interesting to look at with gravity enabled
+    // someNoise  interesting to look at with gravity enabled
     // Default just a floor
     public enum settings{SOMENOISE, ISWITHCONE,DEFAULT};
     public settings startwith;
@@ -285,7 +285,6 @@ public class DualContouring3D : MonoBehaviour
                         continue;
                     }
                     vertexGrid[x, y, z] = vertex;
-                    //add indicies?
                 }
             }
         }
@@ -582,83 +581,42 @@ public class DualContouring3D : MonoBehaviour
         float zEnd=areaSize;
         
         if(isConeOptimized){
-            //Simplification(wrong): no cone has a bigger circumference than its height
-        
-            //Optimization attempt
-            xStart = (index.x-height-10-1/aperture);//*scale;
-            yStart = (index.y-height-5-1/aperture) ;//*scale; 
-            zStart = (index.z-height-10-1/aperture);//*scale;
-            xEnd =   (index.x+height+10+1/aperture);///scale;
-            yEnd =   (index.y+height+5+1/aperture) ;///scale;
-            zEnd =   (index.z+height+10+1/aperture);///scale;
-            //optimize by limiting for loops by cones more exact dimension
-            //http://mathcentral.uregina.ca/QQ/database/QQ.09.07/s/marija1.html
-            // if(coord.y+height < areaSize) yLimit= coord.y+height;
-            // double diameter = 2*height *Math.Tan(aperture);
-            // if(coord.x+diameter < areaSize) xLimit=coord.x+ diameter;
-            // if(coord.z+diameter < areaSize) zLimit= coord.z+diameter;
-
+            //Optimization - Starting simplification thought
+            //No cone has a bigger circumference than its height
+            xStart = (index.x-height-10-1/aperture);
+            yStart = (index.y-height-5-1/aperture) ; 
+            zStart = (index.z-height-10-1/aperture);
+            xEnd =   (index.x+height+10+1/aperture);
+            yEnd =   (index.y+height+5+1/aperture) ;
+            zEnd =   (index.z+height+10+1/aperture);
             if(xStart <0)xStart=0;
             if(yStart <0)yStart=0;
             if(zStart <0)zStart=0;
-
             if(xEnd >areaSize)xEnd=areaSize;
             if(yEnd >areaSize)yEnd=areaSize;
-            if(zEnd >areaSize)zEnd=areaSize;
-        
-
-            // Debug.Log("Optimizationlogs: ");        
-            // Debug.Log(xStart );
-            // Debug.Log(yStart );
-            // Debug.Log(zStart );
-            // Debug.Log(xEnd );
-            // Debug.Log(yEnd );
-            // Debug.Log(zEnd );        
+            if(zEnd >areaSize)zEnd=areaSize; 
         }
-
         for (float x =xStart; x <=  xEnd; x=x+scale) 
         {
             for (float y = yStart; y <= yEnd; y=y+scale)
             {
                 for (float z =zStart; z <=  zEnd; z=z+scale){
                     //reduces to near 0,0,0
-                    //Vector3 position = new Vector3((x-coord.x/scale,(y-coord.y)/scale ,(z-coord.z)/scale);
-                    Vector3 position = new Vector3(x-coord.x,y-coord.y ,z-coord.z);
-                    
-                    // float sx = (x*scale);
-                    // float sy = (y*scale);
-                    // float sz = (z*scale);
-                    // Vector3 position = new Vector3(sx-coord.x,sy-coord.y ,sz-coord.z);
-
-                    
+                    Vector3 position = new Vector3(x-coord.x,y-coord.y ,z-coord.z);                    
                     //Cone Exact is always at zero so remove added offset
                     position += offset;
                     float cache = sdConeExact(position, angle, height);
-                    if( cache < 1) {//to test 0.5
+                    if( cache < 1) {
                         index = new Vector3(x,y,z);
-                        // Debug.Log("in Cone at " + index.ToString());
                         // i don't want to scale offset
-                        
                         if(scale!= 1){
                             index += offset;
                             index.x /=scale;
                             index.y /=scale;
                             index.z /=scale;
                             index -= offset;
-                        
-                            // index=scaleCoordToIndex(index);
                         }
-                        // Debug.Log("Index:"+(int)(index.x)+" "+(int)(index.y)+" "+ (int)(index.z));
                         sdfgrid[(int)(index.x),(int)(index.y), (int)(index.z)] = cache;
-                        
-                        // index.x +=Math.Abs(offset.x*scale);
-                        // index.y +=Math.Abs(offset.y*scale);
-                        // index.z +=Math.Abs(offset.z*scale);
-
-                        //Boolean option
-                        // if(checkIndexBounds(index) ) {
-                        //     grid[(int)(index.x),(int)(index.y), (int)(index.z)] =true;
-                        // }
                     }
                 }
             }

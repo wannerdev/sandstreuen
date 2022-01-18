@@ -4,6 +4,7 @@
 A mobile AR isosurface manipulation prototype by handtracking using Manomotion CE handtracking.  
 The Voxel algorithm is based on Dual contouring generally it is a implementation of <a href="http://www.boristhebrave.com/2018/04/15/dual-contouring-tutorial/"> Boris tutorial</a> with some modifications.
 
+Built with Unity 2021.1.14f1
 ### Change Material by fist gesture
 <img src="https://github.com/wannerdev/sandstreuen/blob/main/img/Screenshot_20211112-053008.jpg?raw=true" width="256" height="256" />
 

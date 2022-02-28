@@ -1,10 +1,23 @@
 ## Sandstreuen
 
 
-A mobile AR isosurface manipulation prototype by handtracking using Manomotion CE handtracking.  
-The Voxel algorithm is based on Dual contouring generally it is a implementation of <a href="http://www.boristhebrave.com/2018/04/15/dual-contouring-tutorial/"> Boris tutorial</a> with some modifications.
+A mobile AR isosurface manipulation prototype by handtracking using <a href="https://www.manomotion.com/mobile-ar"> Manomotion CE </a> handtracking.
+The goal was to simulate spreading sand in some way.
 
-Built with Unity 2021.1.14f1
+The Voxel algorithm is based on Dual contouring generally it is a implementation of <a href="http://www.boristhebrave.com/2018/04/15/dual-contouring-tutorial/"> Boris tutorial</a> with some modifications.
+The performance is bad, it is not efficient since unitys job system wasn't used. The Project was built with Unity 2021.1.14f1
+It was tested on a oneplus 5.
+
+There are 2 settings that can be changed by gestures the material and the edit mode, they can be seen in the images in small white text.  
+#### Materials (They influence the angle of the cone):  
+sanddry, sandwetstart, sandwetend, sandwet
+
+#### Edit modes:
+cone, single, remove, grow
+
+The camera view is changed by the direction the hand moves towards but this can be annoying thats why there is the button which toggles this feature.
+With the controllers the camera can be controlled more easily.
+
 ### Change Material by fist gesture
 <img src="https://github.com/wannerdev/sandstreuen/blob/main/img/Screenshot_20211112-053008.jpg?raw=true" width="256" height="256" />
 
@@ -16,7 +29,7 @@ Built with Unity 2021.1.14f1
   <img src="https://github.com/wannerdev/sandstreuen/blob/main/img/image35.gif?raw=true" width="256" height="256" />
 </div>
 
-### Change mode by palm switch
+### Change edit mode by palm switch
 <div>
   <img src="https://github.com/wannerdev/sandstreuen/blob/main/img/Screenshot_20211112-053105.jpg?raw=true" width="200" height="200" />
   <img src="https://github.com/wannerdev/sandstreuen/blob/main/img/Screenshot_20211112-053107.jpg?raw=true" width="200" height="200" />

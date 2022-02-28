@@ -1,14 +1,13 @@
 ## Sandstreuen
 
 
-A mobile AR isosurface manipulation prototype by handtracking using <a href="https://www.manomotion.com/mobile-ar"> Manomotion CE </a> handtracking.
-The goal was to simulate spreading sand in some way.
+A mobile AR isosurface manipulation prototype by handtracking using <a href="https://www.manomotion.com/mobile-ar"> Manomotion CE </a> handtracking. This is very much an unfinished project to experiment with. The goal was to simulate spreading sand in some way.
 
 The Voxel algorithm is based on Dual contouring generally it is a implementation of <a href="http://www.boristhebrave.com/2018/04/15/dual-contouring-tutorial/"> Boris tutorial</a> with some modifications.
-The performance is bad, it is not efficient since unitys job system wasn't used. The Project was built with Unity 2021.1.14f1
-It was tested on a oneplus 5.
+The performance is bad, it is not efficient since unitys job system wasn't used. The Project was built with Unity 2021.1.14f1.  
+It was tested on an oneplus 5.
 
-There are 2 settings that can be changed by gestures the material and the edit mode, they can be seen in the images in small white text.  
+There are 2 settings that can be changed by gestures, the material and the edit mode. The settings can be seen in the images in small white text.  
 #### Materials (They influence the angle of the cone):  
 sanddry, sandwetstart, sandwetend, sandwet
 

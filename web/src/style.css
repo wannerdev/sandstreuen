@@ -1,0 +1,135 @@
+:root {
+  --bg: #11100d;
+  --panel: rgba(20, 18, 14, 0.78);
+  --text: #f0e8d8;
+  --muted: #b3a98f;
+  --accent: #e0b35e;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+}
+
+#app,
+#app canvas {
+  position: fixed;
+  inset: 0;
+  touch-action: none;
+}
+
+#hud {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 14px;
+  pointer-events: none;
+}
+
+#hud-top h1 {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+#status {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+#status-warning {
+  color: #e07a5e;
+}
+
+#hud-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+button {
+  border: 1px solid rgba(240, 232, 216, 0.18);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+
+button:hover {
+  border-color: var(--accent);
+}
+
+button.active {
+  background: var(--accent);
+  color: #221a08;
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+#hint {
+  font-size: 12px;
+  color: var(--muted);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+#hand-panel {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  width: 180px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(240, 232, 216, 0.25);
+  background: var(--panel);
+}
+
+#hand-video {
+  width: 100%;
+  display: block;
+  transform: scaleX(-1); /* mirror, like looking into a mirror */
+}
+
+#hand-gesture {
+  position: absolute;
+  left: 8px;
+  bottom: 6px;
+  font-size: 12px;
+  color: var(--accent);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+@media (max-width: 600px) {
+  #hand-panel {
+    width: 120px;
+  }
+  #hint {
+    display: none;
+  }
+}

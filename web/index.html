@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#11100d" />
+    <title>Sandstreuen — voxel sand sculpting</title>
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <div id="hud">
+      <div id="hud-top">
+        <h1>Sandstreuen</h1>
+        <div id="status">
+          <span id="status-mode"></span>
+          <span id="status-material"></span>
+          <span id="status-warning"></span>
+        </div>
+      </div>
+
+      <div id="hud-bottom">
+        <div class="row" id="mode-buttons"></div>
+        <div class="row" id="material-buttons"></div>
+        <div class="row">
+          <button id="btn-gravity" class="toggle">Gravity: on</button>
+          <button id="btn-reset">Reset</button>
+          <button id="btn-hands">✋ Enable hand tracking</button>
+        </div>
+        <p id="hint">
+          Drag on the sand to spread it · right-drag / two fingers to orbit · scroll to zoom
+        </p>
+      </div>
+    </div>
+
+    <div id="hand-panel" hidden>
+      <video id="hand-video" playsinline muted></video>
+      <span id="hand-gesture">–</span>
+    </div>
+
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>

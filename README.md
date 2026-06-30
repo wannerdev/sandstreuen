@@ -42,7 +42,12 @@ the original prototype was built on.
 Like the original: **cone**, **single**, **remove**, **grow** edit modes, and
 four sand materials — *sandDry, sandWetStart, sandWetEnd, sandWet* — whose
 angle of repose controls how steep deposited cones are (wet sand piles
-steeper). The grid size can be tuned with a URL parameter, e.g. `?size=96`.
+steeper). The grid **resolution** can be tuned with a URL parameter, e.g.
+`?size=96` (32 or higher, default 64; there is no upper limit, but the grid
+and the per-frame gravity scan grow with the cube of the resolution, so very
+large values get expensive). The sandbox keeps a fixed physical size and the
+brushes a fixed physical scale; a higher value only subdivides the volume more
+finely, for sharper, more detailed sand.
 
 ### What was modernized
 

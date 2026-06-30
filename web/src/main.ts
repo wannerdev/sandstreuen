@@ -8,11 +8,17 @@ const PAINT_INTERVAL_MS = 90;
 
 // --- world ------------------------------------------------------------------
 
+// The sandbox is always WORLD units across; `?size` is the grid *resolution*,
+// i.e. how finely that fixed volume is subdivided — higher = sharper sand,
+// same physical sandbox and brush sizes. No upper limit (the grid and the
+// per-frame gravity scan grow with the cube of the resolution, so very large
+// values get heavy); the floor of 32 just keeps the grid non-degenerate.
+const WORLD = 64;
 const params = new URLSearchParams(location.search);
-const cells = Math.min(96, Math.max(32, Number(params.get('size')) || 64));
+const cells = Math.max(32, Math.round(Number(params.get('size')) || 64));
 
-const engine = new SandEngine(cells, 'cone');
-const scene = new SandScene(document.getElementById('app')!, cells);
+const engine = new SandEngine(cells, 'cone', WORLD);
+const scene = new SandScene(document.getElementById('app')!, cells, WORLD);
 
 // --- state ------------------------------------------------------------------
 

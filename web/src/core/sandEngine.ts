@@ -17,6 +17,13 @@ export class SandEngine {
   readonly grid: VoxelGrid;
   readonly mesher: DualContourer;
 
+  /**
+   * Grid cells per world unit (`cells / worldSize`). Brush sizes below are
+   * expressed in world units and multiplied by this so edits keep a constant
+   * physical size as the resolution changes.
+   */
+  readonly voxelsPerUnit: number;
+
   gravityEnabled = true;
 
   private readonly dirty = new DirtyRegion();
@@ -28,8 +35,14 @@ export class SandEngine {
   private growX = NaN;
   private growZ = NaN;
 
-  constructor(cells = 64, preset: Preset = 'cone') {
+  /**
+   * @param worldSize Physical extent of the sandbox in world units. The grid's
+   *   `cells` subdivide this fixed volume. Defaults to `cells` (one cell per
+   *   unit), reproducing the original grid-space behaviour.
+   */
+  constructor(cells = 64, preset: Preset = 'cone', worldSize = cells) {
     this.cells = cells;
+    this.voxelsPerUnit = cells / worldSize;
     this.grid = new VoxelGrid(cells);
     this.fill(preset);
     this.mesher = new DualContourer(this.grid);
@@ -46,9 +59,11 @@ export class SandEngine {
     this.grid.fillAir();
     const n = this.cells;
     switch (preset) {
-      case 'cone':
-        this.stampCone(n / 2, 10, n / 2, 10, SAND_MATERIALS[0].aperture);
+      case 'cone': {
+        const h = 10 * this.voxelsPerUnit;
+        this.stampCone(n / 2, h, n / 2, h, SAND_MATERIALS[0].aperture);
         break;
+      }
       case 'noise': {
         const dim = this.grid.dim;
         for (let x = 0; x < dim; x++) {
@@ -76,20 +91,23 @@ export class SandEngine {
    */
   applyEdit(mode: EditMode, x: number, y: number, z: number, materialIndex: number): boolean {
     const aperture = SAND_MATERIALS[materialIndex]?.aperture ?? SAND_MATERIALS[0].aperture;
+    const u = this.voxelsPerUnit;
     switch (mode) {
-      case 'cone':
+      case 'cone': {
         // Apex above the surface so the cone's base lands on it.
-        return this.addCone(x, y + 5, z, 5, aperture);
+        const h = 5 * u;
+        return this.addCone(x, y + h, z, h, aperture);
+      }
       case 'single':
-        return this.stampStar(x, y + 1, z, -1);
+        return this.stampStar(x, y + 1 * u, z, -1);
       case 'remove':
-        return this.stampStar(x, y - 0.5, z, 1);
+        return this.stampStar(x, y - 0.5 * u, z, 1);
       case 'grow': {
-        // Same spot (within a cell and a half) keeps raising the pile.
-        if (Math.hypot(x - this.growX, z - this.growZ) < 1.5) {
-          this.growHeight += 0.5;
+        // Same spot (within ~1.5 world units) keeps raising the pile.
+        if (Math.hypot(x - this.growX, z - this.growZ) < 1.5 * u) {
+          this.growHeight += 0.5 * u;
         } else {
-          this.growHeight = 5;
+          this.growHeight = 5 * u;
         }
         this.growX = x;
         this.growZ = z;
@@ -137,28 +155,32 @@ export class SandEngine {
     this.markChanged();
   }
 
-  /** The original add_single: a small plus-shaped stamp (place or carve). */
+  /**
+   * The original add_single: a small stamp (place or carve). At unit
+   * resolution this is the original 7-point plus (radius 1 cell); at higher
+   * resolution it grows to a ball of the same physical size.
+   */
   private stampStar(x: number, y: number, z: number, value: number): boolean {
     if (!this.inBounds(x, y, z)) return false;
     const xi = Math.round(x);
     const yi = Math.round(y);
     const zi = Math.round(z);
-    const offsets = [
-      [0, 0, 0],
-      [1, 0, 0],
-      [-1, 0, 0],
-      [0, 1, 0],
-      [0, -1, 0],
-      [0, 0, 1],
-      [0, 0, -1],
-    ];
-    for (const [ox, oy, oz] of offsets) {
-      const px = xi + ox;
-      const py = yi + oy;
-      const pz = zi + oz;
-      if (px >= 0 && py >= 0 && pz >= 0 && px <= this.cells + 1 && py <= this.cells + 1 && pz <= this.cells + 1) {
-        this.grid.set(px, py, pz, value);
-        this.dirty.include(px, py, pz);
+    const r = Math.max(1, this.voxelsPerUnit);
+    const r2 = r * r + 1e-6;
+    const ri = Math.ceil(r);
+    const lim = this.cells + 1;
+    for (let ox = -ri; ox <= ri; ox++) {
+      for (let oy = -ri; oy <= ri; oy++) {
+        for (let oz = -ri; oz <= ri; oz++) {
+          if (ox * ox + oy * oy + oz * oz > r2) continue;
+          const px = xi + ox;
+          const py = yi + oy;
+          const pz = zi + oz;
+          if (px >= 0 && py >= 0 && pz >= 0 && px <= lim && py <= lim && pz <= lim) {
+            this.grid.set(px, py, pz, value);
+            this.dirty.include(px, py, pz);
+          }
+        }
       }
     }
     this.markChanged();

@@ -4,7 +4,9 @@ import { MeshData } from '../core/dualContouring';
 
 /**
  * Three.js scene: the sand mesh, a ground disc, lights and orbit camera.
- * The voxel grid lives in [0, cells]³; the group centers it on the origin.
+ * The voxel grid lives in [0, cells]³ but the sandbox is always `worldSize`
+ * units across: the mesh is scaled by `voxelScale = worldSize / cells` and
+ * centered on the origin, so the grid resolution never changes the camera framing.
  */
 export class SandScene {
   readonly renderer: THREE.WebGLRenderer;
@@ -12,15 +14,17 @@ export class SandScene {
   readonly camera: THREE.PerspectiveCamera;
   readonly controls: OrbitControls;
 
-  private readonly cells: number;
+  private readonly worldSize: number;
+  private readonly voxelScale: number;
   private readonly sandGeometry = new THREE.BufferGeometry();
   private readonly sandMaterial: THREE.MeshStandardMaterial;
   private readonly sandMesh: THREE.Mesh;
   private readonly ground: THREE.Mesh;
   private readonly raycaster = new THREE.Raycaster();
 
-  constructor(container: HTMLElement, cells: number) {
-    this.cells = cells;
+  constructor(container: HTMLElement, cells: number, worldSize = cells) {
+    this.worldSize = worldSize;
+    this.voxelScale = worldSize / cells;
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -31,15 +35,15 @@ export class SandScene {
 
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x181612);
-    this.scene.fog = new THREE.Fog(0x181612, cells * 2, cells * 6);
+    this.scene.fog = new THREE.Fog(0x181612, worldSize * 2, worldSize * 6);
 
     this.camera = new THREE.PerspectiveCamera(
       50,
       window.innerWidth / window.innerHeight,
       0.1,
-      cells * 10,
+      worldSize * 10,
     );
-    this.camera.position.set(0, cells * 0.65, cells * 1.05);
+    this.camera.position.set(0, worldSize * 0.65, worldSize * 1.05);
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.target.set(0, 4, 0);
@@ -47,7 +51,7 @@ export class SandScene {
     this.controls.dampingFactor = 0.08;
     this.controls.maxPolarAngle = Math.PI * 0.49;
     this.controls.minDistance = 8;
-    this.controls.maxDistance = cells * 3;
+    this.controls.maxDistance = worldSize * 3;
     // Left button paints sand; orbit with the right button / two fingers.
     this.controls.mouseButtons = {
       LEFT: null,
@@ -64,19 +68,19 @@ export class SandScene {
     this.scene.add(new THREE.AmbientLight(0xfff4dd, 0.25));
 
     const sun = new THREE.DirectionalLight(0xffe8c0, 2.2);
-    sun.position.set(cells * 0.8, cells * 1.2, cells * 0.5);
+    sun.position.set(worldSize * 0.8, worldSize * 1.2, worldSize * 0.5);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
-    const s = cells * 0.9;
+    const s = worldSize * 0.9;
     sun.shadow.camera.left = -s;
     sun.shadow.camera.right = s;
     sun.shadow.camera.top = s;
     sun.shadow.camera.bottom = -s;
-    sun.shadow.camera.far = cells * 4;
+    sun.shadow.camera.far = worldSize * 4;
     this.scene.add(sun);
 
     this.ground = new THREE.Mesh(
-      new THREE.CircleGeometry(cells * 0.95, 64),
+      new THREE.CircleGeometry(worldSize * 0.95, 64),
       new THREE.MeshStandardMaterial({ color: 0x2c2820, roughness: 1 }),
     );
     this.ground.rotation.x = -Math.PI / 2;
@@ -90,7 +94,10 @@ export class SandScene {
       metalness: 0,
     });
     this.sandMesh = new THREE.Mesh(this.sandGeometry, this.sandMaterial);
-    this.sandMesh.position.set(-cells / 2, 0, -cells / 2);
+    // The mesh is built in grid space ([0, cells]); scale it to the fixed
+    // world size and center it, so resolution changes detail, not framing.
+    this.sandMesh.scale.setScalar(this.voxelScale);
+    this.sandMesh.position.set(-worldSize / 2, 0, -worldSize / 2);
     this.sandMesh.castShadow = true;
     this.sandMesh.receiveShadow = true;
     this.scene.add(this.sandMesh);
@@ -127,7 +134,13 @@ export class SandScene {
     const hits = this.raycaster.intersectObjects([this.sandMesh, this.ground], false);
     if (hits.length === 0) return null;
     const p = hits[0].point;
-    return { x: p.x + this.cells / 2, y: Math.max(0, p.y), z: p.z + this.cells / 2 };
+    // World space → grid space (the engine works in [0, cells]).
+    const s = this.voxelScale;
+    return {
+      x: (p.x + this.worldSize / 2) / s,
+      y: Math.max(0, p.y / s),
+      z: (p.z + this.worldSize / 2) / s,
+    };
   }
 
   render(): void {
